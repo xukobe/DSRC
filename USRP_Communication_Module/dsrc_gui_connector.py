@@ -4,7 +4,7 @@
 # Title: Wifi Transceiver
 # Generated: Sat Jan 24 15:55:14 2015
 ##################################################
-execfile("/home/xuepeng/.grc_gnuradio/wifi_phy_hier.py")
+#execfile("~/.grc_gnuradio/wifi_phy_hier.py")
 from gnuradio import blocks
 from gnuradio import eng_notation
 from gnuradio import gr
@@ -12,7 +12,7 @@ from gnuradio import uhd
 from gnuradio.eng_option import eng_option
 from gnuradio.filter import firdes
 from optparse import OptionParser
-#from wifi_phy_hier import wifi_phy_hier
+from wifi_phy_hier import wifi_phy_hier
 from dsrc_messager_blocks import dsrc_client
 from dsrc_message_generator import message_generator
 from dsrc_message_collector import message_collector
@@ -89,7 +89,7 @@ class wifi_transceiver(gr.top_block):
         #self.msg_connect((self.blocks_message_strobe_0, 'strobe'), (self.ieee802_11_ofdm_mac_0, 'app in'))
         self.msg_connect((self.ieee802_11_ofdm_mac_0, 'app out'),(self.transmitter,'send in'))
         #self.msg_connect((self.ieee802_11_ofdm_mac_0, 'app out'),(self.message_collector, 'message_stream in'))
-        self.msg_connect((self.message_collector,'message_to_collect out'),(self.transmitter,'send in'))
+        #self.msg_connect((self.message_collector,'message_to_collect out'),(self.transmitter,'send in'))
         self.msg_connect((self.ieee802_11_ofdm_mac_0, 'phy out'), (self.foo_wireshark_connector_0, 'in'))    
         self.msg_connect((self.ieee802_11_ofdm_mac_0, 'phy out'), (self.wifi_phy_hier_0, 'mac_in'))    
         self.msg_connect((self.wifi_phy_hier_0, 'mac_out'), (self.foo_wireshark_connector_0, 'in'))    
