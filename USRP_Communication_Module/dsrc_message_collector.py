@@ -19,6 +19,7 @@ class message_collector(gr.basic_block):
         self.set_msg_handler(pmt.intern('message_stream in'),self.handle_msg)
 
     def handle_msg(self,msg):
+        print msg
         if self.message == msg:
             pass
         else:
