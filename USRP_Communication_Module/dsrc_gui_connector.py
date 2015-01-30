@@ -4,7 +4,7 @@
 # Title: Wifi Transceiver
 # Generated: Sat Jan 24 15:55:14 2015
 ##################################################
-
+execfile("/home/xuepeng/.grc_gnuradio/wifi_phy_hier.py")
 from gnuradio import blocks
 from gnuradio import eng_notation
 from gnuradio import gr
@@ -12,7 +12,7 @@ from gnuradio import uhd
 from gnuradio.eng_option import eng_option
 from gnuradio.filter import firdes
 from optparse import OptionParser
-from wifi_phy_hier import wifi_phy_hier
+#from wifi_phy_hier import wifi_phy_hier
 from dsrc_messager_blocks import dsrc_client
 from dsrc_message_generator import message_generator
 from dsrc_message_collector import message_collector
@@ -73,23 +73,22 @@ class wifi_transceiver(gr.top_block):
         (self.foo_packet_pad2_0).set_min_output_buffer(100000)
         self.blocks_multiply_const_vxx_0 = blocks.multiply_const_vcc((mult, ))
         (self.blocks_multiply_const_vxx_0).set_min_output_buffer(100000)
-        self.blocks_message_strobe_0 = blocks.message_strobe(pmt.intern("     Laptop3     "), 100)
+        #self.blocks_message_strobe_0 = blocks.message_strobe(pmt.intern("     Laptop3     "), 100)
         self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_char*1, "/tmp/ofdm.pcap", True)
         self.blocks_file_sink_0.set_unbuffered(True)
         #Add  by Xuepeng Xu
         self.transmitter = dsrc_client()
-        self.message_generator = message_generator()
-        self.message_collector = message_collector()
+        #self.message_generator = message_generator()
+        #self.message_collector = message_collector()
 
         ##################################################
         # Connections
         ##################################################
-        #self.msg_connect((self.transmitter,'received out'),(self.ieee802_11_ofdm_mac_0, 'app in'))
-        self.msg_connect((self.transmitter,'received out'),(self.message_generator, 'message_to_send in'))
-        self.msg_connect((self.message_generator,'message_stream out'),(self.ieee802_11_ofdm_mac_0, 'app in'))
+        self.msg_connect((self.transmitter,'received out'),(self.ieee802_11_ofdm_mac_0, 'app in'))
+        #self.msg_connect((self.transmitter,'received out'), (self.blocks_message_strobe_0, 'set_msg'))
         #self.msg_connect((self.blocks_message_strobe_0, 'strobe'), (self.ieee802_11_ofdm_mac_0, 'app in'))
-        #self.msg_connect((self.ieee802_11_ofdm_mac_0, 'app out'),(self.transmitter,'send in'))
-        self.msg_connect((self.ieee802_11_ofdm_mac_0, 'app out'),(self.message_collector, 'message_stream in'))
+        self.msg_connect((self.ieee802_11_ofdm_mac_0, 'app out'),(self.transmitter,'send in'))
+        #self.msg_connect((self.ieee802_11_ofdm_mac_0, 'app out'),(self.message_collector, 'message_stream in'))
         self.msg_connect((self.message_collector,'message_to_collect out'),(self.transmitter,'send in'))
         self.msg_connect((self.ieee802_11_ofdm_mac_0, 'phy out'), (self.foo_wireshark_connector_0, 'in'))    
         self.msg_connect((self.ieee802_11_ofdm_mac_0, 'phy out'), (self.wifi_phy_hier_0, 'mac_in'))    
@@ -155,8 +154,6 @@ class wifi_transceiver(gr.top_block):
         self.encoding = encoding
 
 if __name__ == '__main__':
-    import ctypes
-    import sys
     #tb.start()
     # sock = socketclient()
     # sock.connect('127.0.0.1',10213)
@@ -181,14 +178,13 @@ if __name__ == '__main__':
     #         print "data.txt not found!"
     #tb.stop()
     #tb.wait()
-    if sys.platform.startswith('linux'):
-        try:
-            x11 = ctypes.cdll.LoadLibrary('libX11.so')
-            x11.XInitThreads()
-        except:
-            print "Warning: failed to XInitThreads()"
     parser = OptionParser(option_class=eng_option, usage="%prog: [options]")
     (options, args) = parser.parse_args()
     tb = wifi_transceiver()
-    tb.start(True)
+    tb.start()
+    try:
+        raw_input('Press Enter to quit: ')
+    except EOFError:
+        pass
+    tb.stop()
     tb.wait()
