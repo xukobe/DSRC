@@ -15,10 +15,10 @@ class test_sender(gr.basic_block):
         self.message_port_register_out(pmt.intern('out'))
 
     def post_message(self, msg):
-        send_pmt = pmt.make_u8vector(len(msg), ord(' '))
-        for i in range(len(msg)):
-            pmt.u8vector_set(send_pmt, i, ord(msg[i]))
-        self.message_port_pub(pmt.intern('out'), pmt.cons(pmt.PMT_NIL, send_pmt))
+        # send_pmt = pmt.make_u8vector(len(msg), ord(' '))
+        # for i in range(len(msg)):
+        #     pmt.u8vector_set(send_pmt, i, ord(msg[i]))
+        self.message_port_pub(pmt.intern('out'), pmt.string_to_symbol(msg))
 
 
 class test_receiver(gr.basic_block):
@@ -31,8 +31,10 @@ class test_receiver(gr.basic_block):
         self.set_msg_handler(pmt.intern('in'),self.handle_msg)
 
     def handle_msg(self,msg_pmt):
-        msg = pmt.cdr(msg_pmt)
-        msg_str = "".join([chr(x) for x in pmt.u8vector_elements(msg)])
+        # msg = pmt.cdr(msg_pmt)
+        # msg_str = "".join([chr(x) for x in pmt.u8vector_elements(msg)])
+        msg_str = pmt.symbol_to_string(msg_pmt)
+        print msg_pmt
         print msg_str
 
 

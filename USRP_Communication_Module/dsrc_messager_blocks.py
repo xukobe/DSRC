@@ -30,17 +30,19 @@ class dsrc_client(gr.basic_block):
     #Message received from socket
     def _recv_callback(self,msg):
         #encapsulate the message with pmt type
-        send_pmt = pmt.make_u8vector(len(msg), ord(' '))
-        for i in range(len(msg)):
-            pmt.u8vector_set(send_pmt, i, ord(msg[i]))
-        self.message_port_pub(pmt.intern('received out'), pmt.cons(pmt.PMT_NIL, send_pmt))
+        #rev_msg = pmt.symbol_to_string(msg)
+        # send_pmt = pmt.make_u8vector(len(rev_msg), ord(' '))
+        # for i in range(len(rev_msg)):
+        #     pmt.u8vector_set(send_pmt, i, ord(rev_msg[i]))
+        # self.message_port_pub(pmt.intern('received out'), pmt.cons(pmt.PMT_NIL, send_pmt))
+        self.message_port_pub(pmt.intern('received out'), pmt.string_to_symbol(msg))
         print msg
 
     def handle_msg(self, msg_pmt):
         print msg_pmt
-        msg = pmt.cdr(msg_pmt)
-        msg_str = "".join([chr(x) for x in pmt.u8vector_elements(msg)])
-        #msg = pmt.symbol_to_string(msg_pmt)
+        # msg = pmt.cdr(msg_pmt)
+        # msg_str = "".join([chr(x) for x in pmt.u8vector_elements(msg)])
+        msg_str = pmt.symbol_to_string(msg_pmt)
         self.client.send(msg_str)
 
     def stopself(self):
@@ -69,16 +71,19 @@ class dsrc_server(gr.basic_block):
         print "Connected"
 
     def _recv_callback(self,msg):
-        send_pmt = pmt.make_u8vector(len(msg), ord(' '))
-        for i in range(len(msg)):
-            pmt.u8vector_set(send_pmt, i, ord(msg[i]))
-        self.message_port_pub(pmt.intern('received out'), pmt.cons(pmt.PMT_NIL, send_pmt))
+        rev_msg = pmt.symbol_to_string(msg)
+        # send_pmt = pmt.make_u8vector(len(rev_msg), ord(' '))
+        # for i in range(len(rev_msg)):
+        #     pmt.u8vector_set(send_pmt, i, ord(rev_msg[i]))
+        # self.message_port_pub(pmt.intern('received out'), pmt.cons(pmt.PMT_NIL, send_pmt))
+        self.message_port_pub(pmt.intern('received out'), pmt.string_to_symbol(rev_msg))
         print msg
 
     def handle_msg(self,msg_pmt):
         print msg_pmt
-        msg = pmt.cdr(msg_pmt)
-        msg_str = "".join([chr(x) for x in pmt.u8vector_elements(msg)])
+        # msg = pmt.cdr(msg_pmt)
+        # msg_str = "".join([chr(x) for x in pmt.u8vector_elements(msg)])
+        msg_str = pmt.symbol_to_string(msg_pmt)
         print msg_str
         for i in range(len(self.client)):
             self.client[i].send(msg_str)
