@@ -35,6 +35,7 @@ class dsrc_client(gr.basic_block):
         # for i in range(len(rev_msg)):
         #     pmt.u8vector_set(send_pmt, i, ord(rev_msg[i]))
         # self.message_port_pub(pmt.intern('received out'), pmt.cons(pmt.PMT_NIL, send_pmt))
+
         self.message_port_pub(pmt.intern('received out'), pmt.string_to_symbol(msg))
         print msg
 
@@ -42,7 +43,10 @@ class dsrc_client(gr.basic_block):
         print msg_pmt
         # msg = pmt.cdr(msg_pmt)
         # msg_str = "".join([chr(x) for x in pmt.u8vector_elements(msg)])
-        msg_str = pmt.symbol_to_string(msg_pmt)
+        msg = pmt.cdr(msg_pmt)
+        msg_str = "".join([chr(x) for x in pmt.u8vector_elements(msg)])
+        msg_str = filter(lambda x: x in string.printable, msg_str)
+        #msg_str = pmt.symbol_to_string(msg_pmt)
         self.client.send(msg_str)
 
     def stopself(self):
@@ -81,10 +85,13 @@ class dsrc_server(gr.basic_block):
 
     def handle_msg(self,msg_pmt):
         print msg_pmt
-        # msg = pmt.cdr(msg_pmt)
+        #msg_pmt_cdr = pmt.cdr(msg_pmt)
         # msg_str = "".join([chr(x) for x in pmt.u8vector_elements(msg)])
-        msg_str = pmt.symbol_to_string(msg_pmt)
-        print msg_str
+        msg = pmt.cdr(msg_pmt)
+        msg_str = "".join([chr(x) for x in pmt.u8vector_elements(msg)])
+        msg_str = filter(lambda x: x in string.printable, msg_str)
+        #msg_str = pmt.symbol_to_string(msg_pmt)
+        print "Server: Handle MSG: "+msg_str
         for i in range(len(self.client)):
             self.client[i].send(msg_str)
 
