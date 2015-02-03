@@ -5,17 +5,36 @@ import time
 
 from threading import Condition, Thread
 
+GO = "GO"
+FAST_FORWARD = "FAST_FORWARD"
+FAST_BACKWARD = "FAST_BACKWARD"
+FORWARD = "FORWARD"
+BACKWARD = "BACKWARD"
+TURN_LEFT = "TURN LEFT"
+TURN_RIGHT = "TURN RIGHT"
+PAUSE = "PAUSE"
+
+REGULAR_SPEED = 20
+FAST_SPEED = 30
+RADIUS_SPEED = 90
 
 class job:
     """
     The class is used to send a single command to iRobot
     """
-    def __init__(self, action, time):
+    def __init__(self, robot, action, time, arg1 = None, arg2 = None):
+        self.robot = robot
         self.action = action
         self.time = time
+        self.arg1 = arg1
+        self.arg2 = arg2
 
     def execute(self):
         print self.action
+        if self.action == PAUSE:
+            self.robot.go(0,0)
+        elif self.action == FORWARD:
+            self.robot.go(REGULAR_SPEED, 0)
         pass
 
     def getTime(self):
@@ -56,7 +75,6 @@ class processor(Thread):
         """
         add new job to processor
         :param job: The job to add
-        :return:
         """
         self.queue.put(job)
 
