@@ -1,5 +1,8 @@
 __author__ = 'xuepeng'
 
+from DSRC_Messager_Module.dsrc_messager import socket_server,socket_client
+from DSRC_USRP_Connector import connector_Interface
+
 class event:
     def __init__(self):
         self.cmd = ''
@@ -24,3 +27,10 @@ class eventListener:
 
     def irobotEventReceived(self,event):
         raise NotImplementedError("iRobot event listener is not implemented")
+
+class USRPEventDetector(eventGenerator, connector_Interface):
+    def __init__(self):
+        pass
+
+    def msg_received(self,msg):
+        print msg

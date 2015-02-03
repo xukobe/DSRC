@@ -6,8 +6,8 @@ import string
 import numpy
 import pmt
 from gnuradio import gr
-from dsrc_messager import socket_client
-from dsrc_messager import socket_server
+from DSRC_Messager_Module.dsrc_messager import socket_client
+from DSRC_Messager_Module.dsrc_messager import socket_server
 
 class dsrc_client(gr.basic_block):
     "This class is client in the inter-process communication."
