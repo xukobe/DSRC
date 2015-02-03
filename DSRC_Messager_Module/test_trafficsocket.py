@@ -1,9 +1,11 @@
 __author__ = 'xuepeng'
 
-from dsrc_messager import socket_client
-from dsrc_messager import socket_server
 import threading
 import socket
+
+from dsrc_messager import socket_client
+from dsrc_messager import socket_server
+
 
 client = None
 
