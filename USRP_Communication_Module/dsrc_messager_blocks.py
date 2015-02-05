@@ -92,11 +92,12 @@ class dsrc_server(gr.basic_block):
         # msg_str = "".join([chr(x) for x in pmt.u8vector_elements(msg)])
         msg = pmt.cdr(msg_pmt)
         msg_str = "".join([chr(x) for x in pmt.u8vector_elements(msg)])
-        msg_str = filter(lambda x: x in string.printable, msg_str)
+        #msg_str = filter(lambda x: x in string.printable, msg_str)
         #msg_str = pmt.symbol_to_string(msg_pmt)
-        print "Server: Handle MSG: "+msg_str
+        msg_cutted = msg_str[24:]
+        print "Server: Handle MSG: "+msg_cutted
         for i in range(len(self.client)):
-            self.client[i].send(msg_str)
+            self.client[i].send(msg_cutted)
 
     def stopself(self):
         for i in range(len(self.client)):
