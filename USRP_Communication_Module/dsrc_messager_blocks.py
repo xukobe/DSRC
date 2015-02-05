@@ -40,14 +40,17 @@ class dsrc_client(gr.basic_block):
         print msg
 
     def handle_msg(self, msg_pmt):
+        # TODO: Here I use a dirty way to handle the received string. This method need to be refined
         print msg_pmt
         # msg = pmt.cdr(msg_pmt)
         # msg_str = "".join([chr(x) for x in pmt.u8vector_elements(msg)])
         msg = pmt.cdr(msg_pmt)
         msg_str = "".join([chr(x) for x in pmt.u8vector_elements(msg)])
-        msg_str = filter(lambda x: x in string.printable, msg_str)
+        #msg_str = filter(lambda x: x in string.printable, msg_str)
         #msg_str = pmt.symbol_to_string(msg_pmt)
-        self.client.send(msg_str)
+        # Here I just cut the string from the 24th character. the previous 24 chars are the header
+        msg_cutted = msg_str[24:]
+        self.client.send(msg_cutted)
 
     def stopself(self):
         self.client.stopself()
