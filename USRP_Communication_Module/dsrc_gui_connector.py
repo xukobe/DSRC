@@ -5,6 +5,11 @@
 # Generated: Sat Jan 24 15:55:14 2015
 ##################################################
 #execfile("~/.grc_gnuradio/wifi_phy_hier.py")
+import os
+import sys
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+
 from gnuradio import blocks
 from gnuradio import eng_notation
 from gnuradio import gr
