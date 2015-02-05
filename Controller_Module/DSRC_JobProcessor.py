@@ -1,9 +1,10 @@
 __author__ = 'xuepeng'
 
-import Queue
 import time
 
+from collections import deque
 from threading import Condition, Thread
+from iRobot_Module.create import Create
 
 GO = "GO"
 FAST_FORWARD = "FAST_FORWARD"
@@ -22,23 +23,56 @@ class job:
     """
     The class is used to send a single command to iRobot
     """
-    def __init__(self, robot, action, time, arg1 = None, arg2 = None):
-        self.robot = robot
+    def __init__(self, action, time, arg1 = None, arg2 = None):
         self.action = action
         self.time = time
         self.arg1 = arg1
         self.arg2 = arg2
+        self.timeLeft = self.time
+        self.finished = False
+        self.currentJobStartTime = 0
+        self.currentJobEndTime = 0
 
-    def execute(self):
+    def execute(self, robot, jobCondition):
+        if not self.finished:
+            jobCondition.acquire()
+            self._do_job(robot)
+            self.currentJobStartTime = time.time()
+            jobCondition.wait(self.timeLeft)
+            self.currentJobEndTime = time.time()
+            self.timeLeft = self.timeLeft - (self.currentJobEndTime - self.currentJobStartTime)
+            if self.timeLeft <= 0:
+                self.finished = True
+            else:
+                self.finished = False
+            jobCondition.release()
+        else:
+            pass
+        # if self.action == PAUSE:
+        #     self.robot.go(0,0)
+        # elif self.action == FORWARD:
+        #     self.robot.go(REGULAR_SPEED, 0)
+
+    def _do_job(self,robot):
         print self.action
-        if self.action == PAUSE:
-            self.robot.go(0,0)
-        elif self.action == FORWARD:
-            self.robot.go(REGULAR_SPEED, 0)
-        pass
+        # if self.action == PAUSE:
+        #     robot.go(0, 0)
+        # elif self.action == FORWARD:
+        #     robot.go(REGULAR_SPEED, 0)
+        # elif self.action == BACKWARD:
+        #     robot.go(-REGULAR_SPEED, 0)
+        # elif self.action == FAST_FORWARD:
+        #     robot.go()
+        # elif self.action == TURN_LEFT:
+        #     robot.go(0, -RADIUS_SPEED)
+        # elif self.action == TURN_RIGHT:
+        #     robot.go(0, RADIUS_SPEED)
 
     def getTime(self):
         return self.time
+
+    def isFinished(self):
+        return self.finished
 
 
 class jobGenerator:
@@ -47,20 +81,22 @@ class jobGenerator:
     """
     def __init__(self):
         pass
-
     @staticmethod
-    def generateJob(action, time):
+    def generate_job(action, time):
+        """
+        :rtype : job
+        """
         return job(action, time)
-
 
 class processor(Thread):
     """
     Processor has a queue, which contain a list of jobs. These jobs will be executed one by one
     The pause and resume functionalities are implemented
     """
-    def __init__(self):
+    def __init__(self, robot):
         Thread.__init__(self)
-        self.queue = Queue.Queue()
+        self.robot = robot
+        self.queue = deque()
         self.pause = True
         self.flowCondition = Condition()
         self.jobCondition = Condition()
@@ -71,18 +107,32 @@ class processor(Thread):
         self.timeLeft = 0
         self.running = True
 
-    def addNewJob(self, job):
+    def add_new_job(self, new_job):
         """
         add new job to processor
-        :param job: The job to add
+        :param new_job: The job to add
         """
-        self.queue.put(job)
+        self.queue.append(new_job)
 
-    def getNumberOfJobs(self):
+    def insert_new_job(self, new_job):
+        """
+        Insert a new job to left hand side of the queue
+        The new job will be executed first
+        :param new_job: new job to insert
+        """
+        self.queue.appendleft(new_job)
+
+    def is_pause(self):
+        """
+        :return: the value of pause
+        """
+        return self.pause
+
+    def get_number_of_jobs(self):
         """
         :return: The size of current queue
         """
-        return self.queue.qsize()
+        return len(self.queue)
 
     def run(self):
         while self.running:
@@ -91,28 +141,18 @@ class processor(Thread):
                 self.flowCondition.wait()
             self.flowCondition.release()
 
-            self.jobCondition.acquire()
-            if self.nextJob:
-                if self.queue.empty():
-                    self.jobCondition.release()
+            if self.currentJob and self.currentJob.isFinished():
+                self.currentJob = None
+
+            if not self.currentJob:
+                if len(self.queue) == 0:
                     self.pause = True
                     continue
                 else:
-                    print "Strat new job"
-                    self.currentJob = self.queue.get()
-                    self.timeLeft = self.currentJob.getTime()
-            self.currentJob.execute()
-            self.currentJobStartTime = time.time()
-            self.jobCondition.wait(self.timeLeft)
-            self.currentJobEndTime = time.time()
-            self.timeLeft = self.timeLeft - (self.currentJobEndTime - self.currentJobStartTime)
-            print "Time spent:" + str(self.currentJobEndTime - self.currentJobStartTime)
-            print "Job stopped, time left:" + str(self.timeLeft)
-            if self.timeLeft <= 0:
-                self.nextJob = True
-            else:
-                self.nextJob = False
-            self.jobCondition.release()
+                    self.currentJob = self.queue.popleft()
+
+            self.currentJob.execute(self.robot, self.jobCondition)
+
 
     def pause_processor(self):
         """
@@ -123,8 +163,8 @@ class processor(Thread):
         self.jobCondition.notifyAll()
         self.jobCondition.release()
         # Generate a pause job and execute
-        job = jobGenerator.generateJob('pause',0)
-        job.execute()
+        job = jobGenerator.generate_job(PAUSE,0)
+        job.execute(self.robot, self.jobCondition)
 
     def resume_processor(self):
         """
@@ -151,19 +191,22 @@ class processor(Thread):
         self.resume_processor()
 
 def main():
-    job1 = jobGenerator.generateJob("forward", 3)
-    job2 = jobGenerator.generateJob("turn left",1)
-    job3 = jobGenerator.generateJob("fast forward", 3)
-    job4 = jobGenerator.generateJob("Pause",0)
-    job5 = jobGenerator.generateJob("Backward",4)
-    job6 = jobGenerator.generateJob("Stop",0)
-    proc = processor()
-    proc.addNewJob(job1)
-    proc.addNewJob(job2)
-    proc.addNewJob(job3)
-    proc.addNewJob(job4)
-    proc.addNewJob(job5)
-    proc.addNewJob(job6)
+    # robot = Create('/dev/ttyUSB0')
+    job1 = jobGenerator.generate_job(FORWARD, 3)
+    job2 = jobGenerator.generate_job(TURN_LEFT, 1)
+    job3 = jobGenerator.generate_job(TURN_RIGHT, 1)
+    job4 = jobGenerator.generate_job(FAST_FORWARD, 1)
+    job5 = jobGenerator.generate_job(PAUSE,0)
+    job6 = jobGenerator.generate_job(BACKWARD,3)
+    job7 = jobGenerator.generate_job(PAUSE,0)
+    proc = processor(None)
+    proc.add_new_job(job1)
+    proc.add_new_job(job2)
+    proc.add_new_job(job3)
+    proc.add_new_job(job4)
+    proc.add_new_job(job5)
+    proc.add_new_job(job6)
+    proc.add_new_job(job7)
     proc.start_processor()
     while True:
         s = raw_input()
@@ -175,6 +218,10 @@ def main():
             proc.resume_processor()
         elif s == 's':
             proc.stop_processor()
+        elif s == 'ir':
+            job8 = jobGenerator.generate_job(TURN_RIGHT,1)
+            proc.insert_new_job(job8)
+
 
 if __name__ == '__main__':
     main()

@@ -5,6 +5,8 @@ import random
 import time
 import threading
 
+PACKET_LEN = 512
+
 class socket_client(threading.Thread):
     def __init__(self, recv_callback,sock=None):
         super(socket_client, self).__init__()
@@ -18,11 +20,11 @@ class socket_client(threading.Thread):
         self.sock.connect((host, port))
 
     def send(self,msg):
-        if(len(msg)<256):
-            lack_size = 256 - len(msg)
+        if len(msg)<PACKET_LEN:
+            lack_size = PACKET_LEN - len(msg)
             message = msg+'\n'*lack_size
         else:
-            message = msg[0:255]+"\n"
+            message = msg[0:(PACKET_LEN-1)]+"\n"
         self._send(message)
 
     def _send(self, msg):
@@ -37,8 +39,8 @@ class socket_client(threading.Thread):
         self._receive()
 
     def _receive(self):
-        read_len = 256
-        total_len = 256
+        read_len = PACKET_LEN
+        total_len = PACKET_LEN
         msg = ''
         self.running = True
         while self.running:
@@ -50,7 +52,7 @@ class socket_client(threading.Thread):
             msg = msg + data
             if(read_len == 0):
                 self._handle_received(msg)
-                read_len = 256
+                read_len = PACKET_LEN
                 msg = ''
 
     def _handle_received(self,msg):

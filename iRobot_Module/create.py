@@ -1136,6 +1136,5 @@ class Create:
         # but how right is it?
         return self.sciMode
 
-
 if __name__ == '__main__':
     displayVersion()
