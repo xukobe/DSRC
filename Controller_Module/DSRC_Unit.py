@@ -226,13 +226,16 @@ class DSRCPositionTracker:
         self.pos_lock = thread.allocate_lock()
 
     def update_secondary(self, update_interval):
-        if not self.processor.pause:
-            job = self.processor.currentJob
-            if job:
-                if job.action == DSRC_JobProcessor.GO:
-                    with self.pos_lock:
-                        self._calculate_secondary_position(job.arg1, job.arg2, update_interval)
-        self.primary_updated = False
+        job = self.processor.currentJob
+        if job:
+            if job.action == DSRC_JobProcessor.GO:
+                with self.pos_lock:
+                    self._calculate_secondary_position(job.arg1, job.arg2, update_interval)
+                    if self.processor.pause:
+                        self._x = self.x
+                        self._y = self.y
+                        self._radian = self.radian
+                    self.primary_updated = False
 
     #TODO: test the method
     def _calculate_secondary_position(self, arg1, arg2, arg_time):
@@ -254,7 +257,7 @@ class DSRCPositionTracker:
             self.x = new_radian_pos['x']
             self.y = new_radian_pos['y']
             self.radian = new_radian_pos['radian']
-        print "Position:"+str(self.x) + ":" + str(self.y) + ":" + str(self.radian)
+        # print "Position:"+str(self.x) + ":" + str(self.y) + ":" + str(self.radian)
 
     @staticmethod
     def calculate_pos(radian_pos, arg1, arg2, arg_time):
@@ -310,8 +313,8 @@ class DSRCPositionTracker:
                 self._x = self.x = new_radian_pos['x']
                 self._y = self.y = new_radian_pos['y']
                 self._radian = self.radian = new_radian_pos['radian']
-                self.primary_updated = True
-        print "Position:"+str(self.x) + ":" + str(self.y) + ":" + str(self.radian)
+            self.primary_updated = True
+        # print "Position:"+str(self.x) + ":" + str(self.y) + ":" + str(self.radian)
 
     # def stop_self(self):
     #     self.running = False

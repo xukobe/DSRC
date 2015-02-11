@@ -37,7 +37,7 @@ class DsrcClient(gr.basic_block):
         # self.message_port_pub(pmt.intern('received out'), pmt.cons(pmt.PMT_NIL, send_pmt))
 
         self.message_port_pub(pmt.intern('received out'), pmt.string_to_symbol(msg))
-        print msg
+        # print msg
 
     def handle_msg(self, msg_pmt):
         # TODO: Here I use a dirty way to handle the received string. This method need to be refined
@@ -84,7 +84,7 @@ class DsrcServer(gr.basic_block):
         #     pmt.u8vector_set(send_pmt, i, ord(rev_msg[i]))
         # self.message_port_pub(pmt.intern('received out'), pmt.cons(pmt.PMT_NIL, send_pmt))
         self.message_port_pub(pmt.intern('received out'), pmt.string_to_symbol(rev_msg))
-        print msg
+        # print msg
 
     def handle_msg(self,msg_pmt):
         print msg_pmt
