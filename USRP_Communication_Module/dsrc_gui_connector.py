@@ -18,7 +18,7 @@ from gnuradio.eng_option import eng_option
 from gnuradio.filter import firdes
 from optparse import OptionParser
 from wifi_phy_hier import wifi_phy_hier
-from dsrc_messager_blocks import dsrc_client
+from dsrc_messager_blocks import DsrcClient
 from dsrc_message_generator import message_generator
 from dsrc_message_collector import message_collector
 import foo
@@ -26,7 +26,7 @@ import ieee802_11
 import pmt
 import time
 
-class wifi_transceiver(gr.top_block):
+class WifiTransceiver(gr.top_block):
 
     def __init__(self):
         gr.top_block.__init__(self, "Traffic Monitor")
@@ -82,7 +82,7 @@ class wifi_transceiver(gr.top_block):
         self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_char*1, "/tmp/ofdm.pcap", True)
         self.blocks_file_sink_0.set_unbuffered(True)
         #Add  by Xuepeng Xu
-        self.transmitter = dsrc_client()
+        self.transmitter = DsrcClient()
         #self.message_generator = message_generator()
         #self.message_collector = message_collector()
 
@@ -185,7 +185,7 @@ if __name__ == '__main__':
     #tb.wait()
     parser = OptionParser(option_class=eng_option, usage="%prog: [options]")
     (options, args) = parser.parse_args()
-    tb = wifi_transceiver()
+    tb = WifiTransceiver()
     tb.start()
     try:
         raw_input('Press Enter to quit: ')

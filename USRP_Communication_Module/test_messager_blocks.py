@@ -3,8 +3,8 @@ __author__ = 'xuepeng'
 import pmt
 import sys
 from gnuradio import gr
-from dsrc_messager_blocks import dsrc_client
-from dsrc_messager_blocks import dsrc_server
+from dsrc_messager_blocks import DsrcClient
+from dsrc_messager_blocks import DsrcServer
 
 class test_sender(gr.basic_block):
     def __init__(self):
@@ -47,9 +47,9 @@ if __name__ == "__main__":
     sender = test_sender()
     receiver = test_receiver()
     if choice == 'server':
-        transmitter = dsrc_server()
+        transmitter = DsrcServer()
     elif choice == 'client':
-        transmitter = dsrc_client()
+        transmitter = DsrcClient()
     tb.msg_connect((sender,'out'),(transmitter,'send in'))
     tb.msg_connect((transmitter,'received out'),(receiver,'in'))
     tb.start()

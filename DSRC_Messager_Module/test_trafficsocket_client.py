@@ -2,14 +2,14 @@ __author__ = 'xuepeng'
 
 import threading
 
-from dsrc_messager import socket_client
-from dsrc_messager import socket_server
+from dsrc_messager import SocketClient
+from dsrc_messager import SocketServer
 
 
 client = None
 
 def test_server():
-    tss = socket_server(_server_callback)
+    tss = SocketServer(_server_callback)
     threading._start_new_thread(tss.run,())
     while True:
         msg = raw_input("Please type some words:")
@@ -24,7 +24,7 @@ def test_server():
 def _server_callback(coming_socket):
     global client
     client_socket = coming_socket
-    client = socket_client(_recv_callback,client_socket)
+    client = SocketClient(_recv_callback,client_socket)
     client.run()
 
 def _recv_callback(msg):
@@ -32,7 +32,7 @@ def _recv_callback(msg):
     print message
 
 def test_client():
-    client = socket_client(_recv_callback)
+    client = SocketClient(_recv_callback)
     client.connect('127.0.0.1',10123)
     threading._start_new_thread(client.run,())
     while True:

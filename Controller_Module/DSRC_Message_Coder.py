@@ -2,7 +2,7 @@ __author__ = 'xuepeng'
 
 import json
 
-class message_coder:
+class MessageCoder:
     def __init__(self):
         pass
 
@@ -22,11 +22,11 @@ def main():
     obj['a'] = 'b'
     a = {'a': 'b'}
     obj['obj'] = a
-    msg_str = message_coder.encode(obj)
+    msg_str = MessageCoder.encode(obj)
     print msg_str
 
     str = "{\"a\": \"b\", \"obj\": {\"a\": \"b\"}}"
-    msg_obj = message_coder.decode(str)
+    msg_obj = MessageCoder.decode(str)
     print msg_obj['a']
     print msg_obj['obj']
     print msg_obj

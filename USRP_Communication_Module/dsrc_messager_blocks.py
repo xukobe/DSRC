@@ -6,10 +6,10 @@ import string
 import numpy
 import pmt
 from gnuradio import gr
-from DSRC_Messager_Module.dsrc_messager import socket_client
-from DSRC_Messager_Module.dsrc_messager import socket_server
+from DSRC_Messager_Module.dsrc_messager import SocketClient
+from DSRC_Messager_Module.dsrc_messager import SocketServer
 
-class dsrc_client(gr.basic_block):
+class DsrcClient(gr.basic_block):
     "This class is client in the inter-process communication."
     def __init__(self, IP="127.0.0.1", port = 10123):
         gr.basic_block.__init__(self,
@@ -21,7 +21,7 @@ class dsrc_client(gr.basic_block):
         self.message_port_register_out(pmt.intern('received out'))
         self.message_port_register_in(pmt.intern('send in'))
         self.set_msg_handler(pmt.intern('send in'),self.handle_msg)
-        self.client = socket_client(self._recv_callback)
+        self.client = SocketClient(self._recv_callback)
         print "Connecting to "+IP+":"+str(port)
         self.client.connect(IP,port)
         self.client.start()
@@ -52,17 +52,17 @@ class dsrc_client(gr.basic_block):
         msg_cutted = msg_str[24:]
         self.client.send(msg_cutted)
 
-    def stopself(self):
-        self.client.stopself()
+    def stop_self(self):
+        self.client.stop_self()
 
-class dsrc_server(gr.basic_block):
+class DsrcServer(gr.basic_block):
     def __init__(self,port = 10123):
         gr.basic_block.__init__(self,
                 name="Socket Server",
                 in_sig=[],
                 out_sig=[])
         self.port = port
-        self.server = socket_server(self._connected_callback,self.port)
+        self.server = SocketServer(self._connected_callback,self.port)
         self.client = []
         self.message_port_register_out(pmt.intern('received out'))
         self.message_port_register_in(pmt.intern('send in'))
@@ -72,7 +72,7 @@ class dsrc_server(gr.basic_block):
 
     def _connected_callback(self,incoming_socket):
         print "A client is connecting"
-        client = socket_client(self._recv_callback, incoming_socket)
+        client = SocketClient(self._recv_callback, incoming_socket)
         self.client.append(client)
         client.start()
         print "Connected"
@@ -99,7 +99,7 @@ class dsrc_server(gr.basic_block):
         for i in range(len(self.client)):
             self.client[i].send(msg_cutted)
 
-    def stopself(self):
+    def stop_self(self):
         for i in range(len(self.client)):
-            self.client[i].stopself()
-        self.server.stopself()
+            self.client[i].stop_self()
+        self.server.stop_self()

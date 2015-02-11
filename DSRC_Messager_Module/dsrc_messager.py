@@ -7,9 +7,9 @@ import threading
 
 PACKET_LEN = 512
 
-class socket_client(threading.Thread):
+class SocketClient(threading.Thread):
     def __init__(self, recv_callback,sock=None):
-        super(socket_client, self).__init__()
+        super(SocketClient, self).__init__()
         self.recv_callback = recv_callback
         if sock is None:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -59,30 +59,30 @@ class socket_client(threading.Thread):
         message = msg.replace("\n", "")
         self.recv_callback(message)
 
-    def stopself(self):
+    def stop_self(self):
         self.running = False
 
-class socket_server(threading.Thread):
+class SocketServer(threading.Thread):
     def __init__(self,connected_callback, port = 10123):
-        super(socket_server, self).__init__()
+        super(SocketServer, self).__init__()
         self.port = port
         self.connected_callback = connected_callback
-        self.serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.serversocket.bind(('0.0.0.0',self.port))
-        self.serversocket.listen(5)
-        self.serversocket.settimeout(1)
+        self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.server_socket.bind(('0.0.0.0', self.port))
+        self.server_socket.listen(5)
+        self.server_socket.settimeout(1)
 
     def run(self):
         self.running = True
         while self.running:
             try:
-                (clientsocket, address) = self.serversocket.accept()
-                self.serversocket.settimeout(2)
-                self.connected_callback(clientsocket)
+                (client_socket, address) = self.server_socket.accept()
+                self.server_socket.settimeout(2)
+                self.connected_callback(client_socket)
             except socket.timeout:
                 pass
 
-    def stopself(self):
+    def stop_self(self):
         self.running = False
 
 # def main():
