@@ -10,6 +10,7 @@ import DSRC_Event
 import DSRC_JobProcessor
 import time
 import thread
+import DSRC_Message_Coder
 
 from DSRC_Event import USRPEventHandler, EventListener, Event
 from DSRC_USRP_Connector import DsrcUSRPConnector
@@ -22,10 +23,22 @@ DSRC_UNIT_MODE_LEAD = 1
 DSRC_UNIT_MODE_FOLLOW = 2
 DSRC_UNIT_MODE_FREE = 3
 
-DSRC_POSITION_UPDATE_INTERVAL = 0.05
+ROBOT_FAST_FORWARD = "fast_forward"
+ROBOT_FAST_BACKWARD = "fast_backward"
+ROBOT_FORWARD = "forward"
+ROBOT_BACKWARD = "backward"
+ROBOT_TURN_LEFT = "turn left"
+ROBOT_TURN_RIGHT = "turn right"
+ROBOT_PAUSE = "pause"
+
+ROBOT_REGULAR_SPEED = 30
+ROBOT_FAST_SPEED = 35
+ROBOT_RADIUS_SPEED = 90
+
+DSRC_THREAD_UPDATE_INTERVAL = 0.05
 
 
-class DSRCUnit(EventListener, JobCallback):
+class DSRCUnit(Thread, EventListener, JobCallback):
     def __init__(self, unit_id, socket_port=10123, robot_port="/dev/ttyUSB0", unit_mode=DSRC_UNIT_MODE_FREE,
                  avoid_collision_mode=False):
         """
@@ -35,6 +48,8 @@ class DSRCUnit(EventListener, JobCallback):
         :param unit_mode: The mode of the car unit
         :param avoid_collision_mode: Emergency mode.
         """
+        Thread.__init__(self)
+        self.running = True
         self.unit_id = unit_id
         self.socket_port = socket_port
         self.robot_port = robot_port
@@ -47,13 +62,64 @@ class DSRCUnit(EventListener, JobCallback):
         # The connector between USRP and Controller module
         self.USRP_connect = DsrcUSRPConnector(self.socket_port, self.USRP_event_handler)
         # iRobot
-        self.create = Create(self.robot_port)
-        # self.create = None
+        # self.create = Create(self.robot_port)
+        self.create = None
         # A processor to process the robot job in order
         self.job_processor = JobProcessor(self.create)
         self.position_tracker = DSRCPositionTracker(self.job_processor, 0, 0, 0)
-        self.position_tracker.start()
         self.car_info()
+        self.bg_thread = DSRCBGThread(self.bg_run)
+        self.bg_thread.start()
+        self.start()
+
+    def bg_run(self):
+        while self.running:
+            self.position_tracker.update_secondary(DSRC_THREAD_UPDATE_INTERVAL)
+            current_job = self.job_processor.currentJob
+            if current_job:
+                action = current_job.action
+                arg1 = current_job.arg1
+                arg2 = current_job.arg2
+            else:
+                action = DSRC_JobProcessor.GO
+                arg1 = 0
+                arg2 = 0
+            msg = DSRC_Message_Coder.MessageCoder.generate_car_car_message(action, arg1, arg2,
+                                                                           self.position_tracker.x,
+                                                                           self.position_tracker.y,
+                                                                           self.position_tracker.radian)
+            self.USRP_connect.send_to_USRP(msg)
+            time.sleep(DSRC_THREAD_UPDATE_INTERVAL)
+
+    def run(self):
+        while self.running:
+            user_input = raw_input(self.unit_id + ">")
+            if user_input == "help":
+                self.help_info()
+            elif user_input == 'q':
+                self.stop_self()
+            elif user_input == "w":
+                self.do_action(ROBOT_FORWARD)
+            elif user_input == "s":
+                self.do_action(ROBOT_BACKWARD)
+            elif user_input == "a":
+                self.do_action(ROBOT_TURN_LEFT)
+            elif user_input == "d":
+                self.do_action(ROBOT_TURN_RIGHT)
+            elif user_input == "p":
+                self.do_action(ROBOT_PAUSE)
+            else:
+                pass
+
+    def help_info(self):
+        print "Empty"
+
+    def welcome_info(self):
+        print "Welcome to DSRC System!"
+        print "Don't know what to do? Type help to explore the system!"
+
+    def car_info(self):
+        print "Car Unit:" + self.unit_id
 
     def set_unit_mode(self, mode):
         self.unit_mode = mode
@@ -61,8 +127,29 @@ class DSRCUnit(EventListener, JobCallback):
     def set_avoid_collision(self, isAvoid):
         self.avoid_collision_mode = isAvoid
 
-    def car_info(self):
-        print "Car Unit:" + self.unit_id
+    # Simple Interface for iRobot Control
+    def do_action(self, simple_action):
+        if simple_action == ROBOT_PAUSE:
+            job = Job(self, DSRC_JobProcessor.GO, 0, 0, 0)
+            self.job_processor.add_new_job(job)
+        elif simple_action == ROBOT_FORWARD:
+            job = Job(self, DSRC_JobProcessor.GO, 0, ROBOT_REGULAR_SPEED, 0)
+            self.job_processor.add_new_job(job)
+        elif simple_action == ROBOT_BACKWARD:
+            job = Job(self, DSRC_JobProcessor.GO, 0, -ROBOT_REGULAR_SPEED, 0)
+            self.job_processor.add_new_job(job)
+        elif simple_action == ROBOT_TURN_LEFT:
+            job1 = Job(self, DSRC_JobProcessor.GO, 90/ROBOT_RADIUS_SPEED, 0, ROBOT_RADIUS_SPEED)
+            current_job = self.job_processor.currentJob
+            job2 = Job(self, current_job.action, current_job.timeLeft, current_job.arg1, current_job.arg2)
+            self.job_processor.add_new_job(job1)
+            self.job_processor.add_new_job(job2)
+        elif simple_action == ROBOT_TURN_RIGHT:
+            job1 = Job(self, DSRC_JobProcessor.GO, 90/ROBOT_RADIUS_SPEED, 0, -ROBOT_RADIUS_SPEED)
+            current_job = self.job_processor.currentJob
+            job2 = Job(self, current_job.action, current_job.timeLeft, current_job.arg1, current_job.arg2)
+            self.job_processor.add_new_job(job1)
+            self.job_processor.add_new_job(job2)
 
     def usrp_event_received(self, event):
         if event.source == self.unit_id:
@@ -75,7 +162,7 @@ class DSRCUnit(EventListener, JobCallback):
                 print "Coordinates:" + str(coordinates.x) + ":" + str(coordinates.y) + ":" + str(coordinates.radian)
                 # TODO: collision detection
                 if self.unit_mode == DSRC_UNIT_MODE_FOLLOW:
-                    new_job = Job(jobCallback=self, action=action.name, arg1=action.arg1, arg2=action.arg2, time=0)
+                    new_job = Job(jobCallback=self, action=action.name, arg1=action.arg1, arg2=action.arg2, time=0.05)
                     self.job_processor.add_new_job(new_job)
 
             elif event.type == DSRC_Event.TYPE_MONITOR_CAR:
@@ -96,14 +183,27 @@ class DSRCUnit(EventListener, JobCallback):
 
     def stop_self(self):
         self.job_processor.stop_processor()
-        self.position_tracker.stop_self()
+        # self.position_tracker.stop_self()
         self.USRP_event_handler.stop_self()
+        self.USRP_connect.stop_self()
+        self.running = False
+        exit()
+
+
+class DSRCBGThread(Thread):
+    def __init__(self, bg_thread_func):
+        Thread.__init__(self)
+        self.running = True
+        self.bg_func = bg_thread_func
+
+    def run(self):
+        self.bg_func()
 
 
 # TODO: Create a position calculation looper with 0.01s interval. The position can be classified into two different types
 # TODO: based on accuracy. The looper calculate the secondary position, while the job event can calculate primary position
 
-class DSRCPositionTracker(Thread):
+class DSRCPositionTracker:
     def __init__(self, processor, x=0, y=0, radian=0):
         """
         :param processor: JobProcessor
@@ -111,7 +211,6 @@ class DSRCPositionTracker(Thread):
         :param y: y coordinate, in cm
         :param radian: the direction in which the car facing
         """
-        Thread.__init__(self)
         self.processor = processor
         # secondary position
         self.x = x
@@ -123,16 +222,16 @@ class DSRCPositionTracker(Thread):
         self._radian = radian
         # primary updated
         self.primary_updated = True
-        self.running = True
+        # self.running = True
         self.pos_lock = thread.allocate_lock()
 
-    def _update_secondary(self):
+    def update_secondary(self, update_interval):
         if not self.processor.pause:
             job = self.processor.currentJob
             if job:
                 if job.action == DSRC_JobProcessor.GO:
                     with self.pos_lock:
-                        self._calculate_secondary_position(job.arg1, job.arg2, DSRC_POSITION_UPDATE_INTERVAL)
+                        self._calculate_secondary_position(job.arg1, job.arg2, update_interval)
         self.primary_updated = False
 
     #TODO: test the method
@@ -186,11 +285,10 @@ class DSRCPositionTracker(Thread):
         new_radian_pos = {'x': new_x, 'y': new_y, 'radian': new_radian}
         return new_radian_pos
 
-    def run(self):
-        while self.running:
-            self._update_secondary()
-            time.sleep(DSRC_POSITION_UPDATE_INTERVAL)
-
+    # def run(self):
+    #     while self.running:
+    #         self._update_secondary()
+    #         time.sleep(DSRC_POSITION_UPDATE_INTERVAL)
 
     def update_primary(self, arg1, arg2, arg_time):
         with self.pos_lock:
@@ -215,8 +313,8 @@ class DSRCPositionTracker(Thread):
                 self.primary_updated = True
         print "Position:"+str(self.x) + ":" + str(self.y) + ":" + str(self.radian)
 
-    def stop_self(self):
-        self.running = False
+    # def stop_self(self):
+    #     self.running = False
 
 
 def test_position():
@@ -250,16 +348,21 @@ def test_position():
             unit.job_processor.insert_new_job(job8)
 
 def test_follow_mode():
-    unit = DSRCUnit("car1")
+    unit = DSRCUnit("car2")
     unit.set_unit_mode(DSRC_UNIT_MODE_FOLLOW)
-    while True:
-        s = raw_input()
-        if s == 'q':
-            unit.stop_self()
-            break
+    unit.join()
+
+def test_lead_mode():
+    unit = unit = DSRCUnit("car1")
+    unit.set_unit_mode(DSRC_UNIT_MODE_LEAD)
+    unit.join()
 
 def main():
     pass
 
 if __name__ == '__main__':
-    test_follow_mode()
+    args = sys.argv
+    if args[1] == "follow":
+        test_follow_mode()
+    else:
+        test_lead_mode()

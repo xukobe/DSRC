@@ -6,14 +6,14 @@ from collections import deque
 from threading import Condition, Thread
 from iRobot_Module.create import Create
 
-GO = "GO"
-FAST_FORWARD = "FAST_FORWARD"
-FAST_BACKWARD = "FAST_BACKWARD"
-FORWARD = "FORWARD"
-BACKWARD = "BACKWARD"
-TURN_LEFT = "TURN LEFT"
-TURN_RIGHT = "TURN RIGHT"
-PAUSE = "PAUSE"
+GO = "go"
+FAST_FORWARD = "fast_forward"
+FAST_BACKWARD = "fast_backward"
+FORWARD = "forward"
+BACKWARD = "backward"
+TURN_LEFT = "turn left"
+TURN_RIGHT = "turn right"
+PAUSE = "pause"
 
 REGULAR_SPEED = 20
 FAST_SPEED = 30
@@ -25,10 +25,10 @@ class JobCallback:
         pass
 
     def job_paused(self, action, arg1, arg2, timeExecuted):
-        raise NotImplementedError( "JobCallback is not implemented yet!" )
+        raise NotImplementedError("JobCallback is not implemented yet!")
 
     def job_finished(self, action, arg1, arg2, timeExecuted):
-        raise NotImplementedError( "JobCallback is not implemented." )
+        raise NotImplementedError("JobCallback is not implemented.")
 
 class Job:
     """
@@ -72,8 +72,9 @@ class Job:
 
     def _do_job(self, robot):
         print self.action + ":" + str(self.arg1) + ":" + str(self.arg2)
-        if self.action == GO:
-            robot.go(self.arg1, self.arg2)
+        if robot:
+            if self.action == GO:
+                robot.go(self.arg1, self.arg2)
         # if self.action == PAUSE:
         #     robot.go(0, 0)
         # elif self.action == FORWARD:
@@ -151,10 +152,7 @@ class JobProcessor(Thread):
                 self.flowCondition.wait()
             self.flowCondition.release()
 
-            if self.currentJob and self.currentJob.isFinished():
-                self.currentJob = None
-
-            if not self.currentJob:
+            if not self.currentJob or self.currentJob.isFinished():
                 if len(self.queue) == 0:
                     self.pause = True
                     continue
@@ -164,9 +162,10 @@ class JobProcessor(Thread):
             self.currentJob.execute(self.robot, self.jobCondition)
 
 
-    def pause_processor(self):
+    def pause_processor(self, save_state=True):
         """
         Pause the current processor and save the current state
+        :param save_state: Save the state of current job if true, discard current job otherwise
         """
         self.pause = True
         self.jobCondition.acquire()
@@ -175,6 +174,8 @@ class JobProcessor(Thread):
         # Generate a pause job and execute
         job = Job(None, GO, 0, 0, 0)
         job.execute(self.robot, self.jobCondition)
+        if not save_state:
+            self.currentJob = None
 
     def resume_processor(self):
         """

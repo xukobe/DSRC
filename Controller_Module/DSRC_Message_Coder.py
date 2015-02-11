@@ -16,6 +16,26 @@ class MessageCoder:
         msg = json.dumps(msg_obj)
         return msg
 
+    @staticmethod
+    def generate_car_car_message(action_name, action_arg1, action_arg2, coor_x, coor_y, coor_radian):
+        msg_obj = {}
+        msg_obj['source'] = 'car2'
+        msg_obj['destination'] = 'car1'
+        msg_obj['type'] = 'car_car'
+        msg_obj_car = {}
+        msg_obj_action = {}
+        msg_obj_action['name'] = action_name
+        msg_obj_action['arg1'] = action_arg1
+        msg_obj_action['arg2'] = action_arg2
+        msg_obj_coor = {}
+        msg_obj_coor['x'] = coor_x
+        msg_obj_coor['y'] = coor_y
+        msg_obj_coor['radian'] = coor_radian
+        msg_obj_car['action'] = msg_obj_action
+        msg_obj_car['coor'] = msg_obj_coor
+        msg_obj['car_car'] = msg_obj_car
+        msg = MessageCoder.encode(msg_obj)
+        return msg
 
 def main():
     obj = {}

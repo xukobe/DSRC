@@ -53,7 +53,10 @@ class DsrcUSRPConnector:
         :type msg: str
         """
         for i in range(len(self.client)):
-            self.client[i].send(msg)
+            try:
+                self.client[i].send(msg)
+            except Exception, e:
+                self.client.remove(self.client[i])
 
     def stop_self(self):
         for i in range(len(self.client)):

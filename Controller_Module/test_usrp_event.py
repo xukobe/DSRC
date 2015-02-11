@@ -36,7 +36,7 @@ class TestClient:
         print self.job2
         print self.job3
         print self.job4
-        threading._start_new_thread(self.sending_thread, ())
+        # threading._start_new_thread(self.sending_thread, ())
 
     def sending_thread(self):
         while True:
