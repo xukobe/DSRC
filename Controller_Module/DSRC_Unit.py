@@ -84,7 +84,8 @@ class DSRCUnit(Thread, EventListener, JobCallback):
                 action = DSRC_JobProcessor.GO
                 arg1 = 0
                 arg2 = 0
-            msg = DSRC_Message_Coder.MessageCoder.generate_car_car_message(action, arg1, arg2,
+            msg = DSRC_Message_Coder.MessageCoder.generate_car_car_message(self.unit_id, DSRC_Event.DESTINATION_ALL,
+                                                                           action, arg1, arg2,
                                                                            self.position_tracker.x,
                                                                            self.position_tracker.y,
                                                                            self.position_tracker.radian)
@@ -159,10 +160,10 @@ class DSRCUnit(Thread, EventListener, JobCallback):
                 action = event.action
                 coordinates = event.coordinates
                 # print "Action:" + action.name + ":" + str(action.arg1) + ":" + str(action.arg2)
-                # print "Coordinates:" + str(coordinates.x) + ":" + str(coordinates.y) + ":" + str(coordinates.radian)
+                print "Coordinates:" + str(coordinates.x) + ":" + str(coordinates.y) + ":" + str(coordinates.radian)
                 # TODO: collision detection
                 if self.unit_mode == DSRC_UNIT_MODE_FOLLOW:
-                    new_job = Job(jobCallback=self, action=action.name, arg1=action.arg1, arg2=action.arg2, time=0.05)
+                    new_job = Job(jobCallback=self, action=action.name, arg1=action.arg1, arg2=action.arg2, time=0)
                     self.job_processor.add_new_job(new_job)
 
             elif event.type == DSRC_Event.TYPE_MONITOR_CAR:

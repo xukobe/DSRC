@@ -17,10 +17,10 @@ class MessageCoder:
         return msg
 
     @staticmethod
-    def generate_car_car_message(action_name, action_arg1, action_arg2, coor_x, coor_y, coor_radian):
+    def generate_car_car_message(source, destination, action_name, action_arg1, action_arg2, coor_x, coor_y, coor_radian):
         msg_obj = {}
-        msg_obj['source'] = 'car2'
-        msg_obj['destination'] = 'car1'
+        msg_obj['source'] = source
+        msg_obj['destination'] = destination
         msg_obj['type'] = 'car_car'
         msg_obj_car = {}
         msg_obj_action = {}
