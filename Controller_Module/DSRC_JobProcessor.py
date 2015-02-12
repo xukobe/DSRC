@@ -181,7 +181,7 @@ class JobProcessor(Thread):
         """
         Resume the current job
         """
-        print "Job resumed"
+        # print "Job resumed"
         self.pause = False
         self.flowCondition.acquire()
         self.flowCondition.notifyAll()

@@ -160,7 +160,7 @@ class DSRCUnit(Thread, EventListener, JobCallback):
                 action = event.action
                 coordinates = event.coordinates
                 # print "Action:" + action.name + ":" + str(action.arg1) + ":" + str(action.arg2)
-                print "Coordinates:" + str(coordinates.x) + ":" + str(coordinates.y) + ":" + str(coordinates.radian)
+                # print "Coordinates:" + str(coordinates.x) + ":" + str(coordinates.y) + ":" + str(coordinates.radian)
                 # TODO: collision detection
                 if self.unit_mode == DSRC_UNIT_MODE_FOLLOW:
                     new_job = Job(jobCallback=self, action=action.name, arg1=action.arg1, arg2=action.arg2, time=0)
