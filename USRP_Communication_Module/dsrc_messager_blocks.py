@@ -41,7 +41,7 @@ class DsrcClient(gr.basic_block):
 
     def handle_msg(self, msg_pmt):
         # TODO: Here I use a dirty way to handle the received string. This method need to be refined
-        print msg_pmt
+        # print msg_pmt
         # msg = pmt.cdr(msg_pmt)
         # msg_str = "".join([chr(x) for x in pmt.u8vector_elements(msg)])
         msg = pmt.cdr(msg_pmt)
@@ -87,7 +87,7 @@ class DsrcServer(gr.basic_block):
         # print msg
 
     def handle_msg(self,msg_pmt):
-        print msg_pmt
+        # print msg_pmt
         #msg_pmt_cdr = pmt.cdr(msg_pmt)
         # msg_str = "".join([chr(x) for x in pmt.u8vector_elements(msg)])
         msg = pmt.cdr(msg_pmt)
@@ -95,7 +95,7 @@ class DsrcServer(gr.basic_block):
         #msg_str = filter(lambda x: x in string.printable, msg_str)
         #msg_str = pmt.symbol_to_string(msg_pmt)
         msg_cutted = msg_str[24:]
-        print "Server: Handle MSG: "+msg_cutted
+        # print "Server: Handle MSG: "+msg_cutted
         for i in range(len(self.client)):
             self.client[i].send(msg_cutted)
 
