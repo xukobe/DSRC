@@ -62,8 +62,8 @@ class DSRCUnit(Thread, EventListener, JobCallback):
         # The connector between USRP and Controller module
         self.USRP_connect = DsrcUSRPConnector(self.socket_port, self.USRP_event_handler)
         # iRobot
-        # self.create = Create(self.robot_port)
-        self.create = None
+        self.create = Create(self.robot_port)
+        # self.create = None
         # A processor to process the robot job in order
         self.job_processor = JobProcessor(self.create)
         self.position_tracker = DSRCPositionTracker(self.job_processor, 0, 0, 0)

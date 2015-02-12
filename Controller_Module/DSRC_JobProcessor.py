@@ -71,7 +71,7 @@ class Job:
         #     self.robot.go(REGULAR_SPEED, 0)
 
     def _do_job(self, robot):
-        print self.action + ":" + str(self.arg1) + ":" + str(self.arg2)
+        # print self.action + ":" + str(self.arg1) + ":" + str(self.arg2)
         if robot:
             if self.action == GO:
                 robot.go(self.arg1, self.arg2)
