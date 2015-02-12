@@ -168,7 +168,7 @@ class USRPEventHandler(Thread, EventGenerator, ConnectorInterface):
         self.start()
 
     def msg_received(self, msg):
-        print msg
+        # print msg
         self.event_queue.put(msg)
 
 
