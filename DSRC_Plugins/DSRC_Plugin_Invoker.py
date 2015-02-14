@@ -93,6 +93,7 @@ def load_plugin():
 def customized_generate_event():
     global event_module
     event = event_module.CustomizedEvent()
+    return event
     #event_module.print_event()
 
 
