@@ -1,6 +1,6 @@
 __author__ = 'xuepeng'
 
-import DSRC_Plugins
+import DSRC_Plugins.DSRC_Plugin_Invoker as Plugin
 
 from DSRC_USRP_Connector import ConnectorInterface
 from DSRC_Message_Coder import MessageCoder
@@ -213,7 +213,7 @@ class USRPEventHandler(Thread, EventGenerator, ConnectorInterface):
             event.self_parse()
         elif event.type == TYPE_CUSTOMIZED:
             if self.customized_event:
-                event = DSRC_Plugins.customized_generate_event()
+                event = Plugin.customized_generate_event()
                 event.set_origin_msg(event_obj)
                 event.self_parse()
 

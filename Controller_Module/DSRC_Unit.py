@@ -11,7 +11,7 @@ import DSRC_JobProcessor
 import time
 import thread
 import DSRC_Message_Coder
-import DSRC_Plugins as plugin
+import DSRC_Plugins.DSRC_Plugin_Invoker as Plugin
 import ConfigParser
 
 from DSRC_Event import USRPEventHandler, EventListener, Event
@@ -71,6 +71,7 @@ class DSRCUnit(Thread, EventListener, JobCallback):
 
         try:
             self.load_ini()
+            self.load_plugin()
         except Exception, e:
             print e
 
@@ -108,8 +109,8 @@ class DSRCUnit(Thread, EventListener, JobCallback):
         self.flag_plugin_customized_sender = config.getboolean("Plugin", "CustomizedSender")
         self.flag_plugin_customized_receiver = config.getboolean("Plugin", "CustomizedReceiver")
         if self.flag_msg_customized_send:
-            if plugin.sender_module.SEND_INTERVALS:
-                self.customized_time_intervals = plugin.sender_module.SEND_INTERVALS
+            if Plugin.sender_module.SEND_INTERVALS:
+                self.customized_time_intervals = Plugin.sender_module.SEND_INTERVALS
 
         # Message Section
         self.flag_msg_car_car_send = config.getboolean("Message", "SendCarCar")
@@ -125,6 +126,9 @@ class DSRCUnit(Thread, EventListener, JobCallback):
         self.robot_port = config.get("iRobot", "Port")
 
         print config_ini_path
+
+    def load_plugin(self):
+        Plugin.load_plugin()
 
     def car_info(self):
         print "###################################################################"
@@ -167,7 +171,7 @@ class DSRCUnit(Thread, EventListener, JobCallback):
                 if self.customized_time_counter < self.customized_time_intervals:
                     self.customized_time_counter += 1
                 else:
-                    plugin.customized_msg_sender(self)
+                    Plugin.customized_msg_sender(self)
                     self.customized_time_counter = 0
 
             time.sleep(self.dsrc_thread_update_interval)
@@ -257,7 +261,7 @@ class DSRCUnit(Thread, EventListener, JobCallback):
 
     def _customized_mode_received(self, event):
         if self.flag_plugin_customized_receiver:
-            plugin.customized_event_handler(self, event)
+            Plugin.customized_event_handler(self, event)
 
     def irobot_event_received(self, event):
         # TODO:
