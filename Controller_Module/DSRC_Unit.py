@@ -11,6 +11,8 @@ import DSRC_JobProcessor
 import time
 import thread
 import DSRC_Message_Coder
+import DSRC_Plugins as plugin
+import ConfigParser
 
 from DSRC_Event import USRPEventHandler, EventListener, Event
 from DSRC_USRP_Connector import DsrcUSRPConnector
@@ -22,6 +24,7 @@ from threading import Thread, Lock
 DSRC_UNIT_MODE_LEAD = 1
 DSRC_UNIT_MODE_FOLLOW = 2
 DSRC_UNIT_MODE_FREE = 3
+DSRC_UNIT_MODE_CUSTOMIZED = 4
 
 ROBOT_FAST_FORWARD = "fast_forward"
 ROBOT_FAST_BACKWARD = "fast_backward"
@@ -72,24 +75,49 @@ class DSRCUnit(Thread, EventListener, JobCallback):
         self.bg_thread.start()
         self.start()
 
+        # flag for message sending:
+        self.car_car_send_flag = True
+        self.customized_send_flag = False
+        self.customized_time_counter = 0
+        self.customized_time_intervals = 0
+
+        # flag for
+
+    def load_ini(self):
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        config = ConfigParser.SafeConfigParser()
+        config_ini_path = ''.join([dir_path, "/unit_config.ini"])
+        print config_ini_path
+
     def bg_run(self):
         while self.running:
             self.position_tracker.update_secondary(DSRC_THREAD_UPDATE_INTERVAL)
-            current_job = self.job_processor.currentJob
-            if current_job:
-                action = current_job.action
-                arg1 = current_job.arg1
-                arg2 = current_job.arg2
-            else:
-                action = DSRC_JobProcessor.GO
-                arg1 = 0
-                arg2 = 0
-            msg = DSRC_Message_Coder.MessageCoder.generate_car_car_message(self.unit_id, DSRC_Event.DESTINATION_ALL,
-                                                                           action, arg1, arg2,
-                                                                           self.position_tracker.x,
-                                                                           self.position_tracker.y,
-                                                                           self.position_tracker.radian)
-            self.USRP_connect.send_to_USRP(msg)
+            # Send car_car message
+            if self.car_car_send_flag:
+                current_job = self.job_processor.currentJob
+                if current_job:
+                    action = current_job.action
+                    arg1 = current_job.arg1
+                    arg2 = current_job.arg2
+                else:
+                    action = DSRC_JobProcessor.GO
+                    arg1 = 0
+                    arg2 = 0
+                msg = DSRC_Message_Coder.MessageCoder.generate_car_car_message(self.unit_id, DSRC_Event.DESTINATION_ALL,
+                                                                               action, arg1, arg2,
+                                                                               self.position_tracker.x,
+                                                                               self.position_tracker.y,
+                                                                               self.position_tracker.radian)
+                self.USRP_connect.send_to_USRP(msg)
+
+            # Send customized message
+            if self.customized_send_flag:
+                if self.customized_time_counter < self.customized_time_intervals:
+                    self.customized_time_counter += 1
+                else:
+                    plugin.customized_msg_sender(self)
+                    self.customized_time_counter = 0
+
             time.sleep(DSRC_THREAD_UPDATE_INTERVAL)
 
     def run(self):
@@ -153,22 +181,33 @@ class DSRCUnit(Thread, EventListener, JobCallback):
             self.job_processor.add_new_job(job2)
 
     def usrp_event_received(self, event):
+        if not event:
+            return
         if event.source == self.unit_id:
             return
-        if event.destination in (DSRC_Event.DESTINATION_ALL, self.unit_id):
-            if event.type == DSRC_Event.TYPE_CAR_CAR:
-                action = event.action
-                coordinates = event.coordinates
-                # print "Action:" + action.name + ":" + str(action.arg1) + ":" + str(action.arg2)
-                # print "Coordinates:" + str(coordinates.x) + ":" + str(coordinates.y) + ":" + str(coordinates.radian)
-                # TODO: collision detection
-                if self.unit_mode == DSRC_UNIT_MODE_FOLLOW:
-                    new_job = Job(jobCallback=self, action=action.name, arg1=action.arg1, arg2=action.arg2, time=0)
-                    self.job_processor.add_new_job(new_job)
 
-            elif event.type == DSRC_Event.TYPE_MONITOR_CAR:
-                # TODO:
-                pass
+        if event.destination in (DSRC_Event.DESTINATION_ALL, self.unit_id):
+            if self.unit_mode == DSRC_UNIT_MODE_FOLLOW:
+                self._follow_mode_received(event)
+            elif self.unit_mode == DSRC_UNIT_MODE_LEAD:
+                self._lead_mode_received(event)
+            elif self.unit_mode == DSRC_UNIT_MODE_CUSTOMIZED:
+                self._customized_mode_received(event)
+
+    def _follow_mode_received(self, event):
+        if event.type == DSRC_Event.TYPE_CAR_CAR:
+            action = event.action
+            new_job = Job(jobCallback=self, action=action.name, arg1=action.arg1, arg2=action.arg2, time=0)
+            self.job_processor.add_new_job(new_job)
+        elif event.type == DSRC_Event.TYPE_MONITOR_CAR:
+            print "Follow mode - Monitor_car"
+
+    def _lead_mode_received(self, event):
+        if event.type == DSRC_Event.TYPE_MONITOR_CAR:
+            print "Lead mode - Monitor_car"
+
+    def _customized_mode_received(self, event):
+        plugin.customized_event_handler(self, event)
 
     def irobot_event_received(self, event):
         # TODO:

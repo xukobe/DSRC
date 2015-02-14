@@ -2,6 +2,7 @@ __author__ = 'xuepeng'
 
 from DSRC_USRP_Connector import ConnectorInterface
 from DSRC_Message_Coder import MessageCoder
+import DSRC_Plugins
 from Queue import Queue
 from threading import Thread
 
@@ -12,6 +13,7 @@ DESTINATION_ALL = "all"
 ####################Type#####################
 TYPE_MONITOR_CAR = "monitor_car"
 TYPE_CAR_CAR = "car_car"
+TYPE_CUSTOMIZED = "customized"
 
 ################Monitor_Car##################
 SETTINGS_NAME_STYLE = "style"
@@ -87,8 +89,10 @@ class Event:
         self.source = None
         self.destination = None
         self.type = None
-        self.action = None
-        self.coordinates = None
+        self.msg_obj = None
+
+    def set_origin_msg(self, msg_obj):
+        self.msg_obj = msg_obj
 
     def set_source(self, source):
         self.source = source
@@ -98,6 +102,46 @@ class Event:
 
     def set_type(self, type):
         self.type = type
+
+    def self_parse(self):
+        raise "Not implemented!"
+
+    @staticmethod
+    def parse_event(event_obj):
+        """
+        :rtype : Event
+        :param event_obj: event object to parse
+        :type event_obj: dict
+        """
+        event = None
+
+        if event.type == TYPE_CAR_CAR:
+            event = Car_CarEvent()
+            event.set_origin_msg(event_obj)
+            event.self_parse()
+        elif event.type == TYPE_MONITOR_CAR:
+            event = Monitor_CarEvent()
+            event.set_origin_msg(event_obj)
+            event.self_parse()
+        elif event.type == TYPE_CUSTOMIZED:
+            if DSRC_Plugins.event_module:
+                event = DSRC_Plugins.event_module.CustomizedEvent()
+                event.set_origin_msg(event_obj)
+                event.self_parse()
+
+        if event:
+            event.source = event_obj['source']
+            event.destination = event_obj['destination']
+            event.type = event_obj['type']
+
+        return event
+
+
+class Car_CarEvent(Event):
+    def __init__(self):
+        Event.__init__()
+        self.action = None
+        self.coordinates = None
 
     def set_action(self, action):
         """
@@ -111,19 +155,9 @@ class Event:
         """
         self.coordinates = coor
 
-    @staticmethod
-    def parse_event(event_obj):
-        """
-        :rtype : Event
-        :param event_obj: event object to parse
-        :type event_obj: dict
-        """
-        event = Event()
-        event.source = event_obj['source']
-        event.destination = event_obj['destination']
-        event.type = event_obj['type']
-        if event.type == TYPE_CAR_CAR:
-            car_car_obj = event_obj[TYPE_CAR_CAR]
+    def self_parse(self):
+        if self.msg_obj:
+            car_car_obj = self.msg_obj[TYPE_CAR_CAR]
             action_event = car_car_obj['action']
             coor_event = car_car_obj['coor']
             action = EventAction()
@@ -134,11 +168,16 @@ class Event:
             coor.set_x(coor_event['x'])
             coor.set_y(coor_event['y'])
             coor.set_radian(coor_event['radian'])
-            event.set_action(action)
-            event.set_coor(coor)
-        elif event.type == TYPE_MONITOR_CAR:
-            pass
-        return event
+            self.set_action(action)
+            self.set_coor(coor)
+
+
+class Monitor_CarEvent(Event):
+    def __init__(self):
+        Event.__init__()
+
+    def self_parse(self):
+        print "Monitor_car event parse!"
 
 class EventGenerator:
     def __init__(self):
