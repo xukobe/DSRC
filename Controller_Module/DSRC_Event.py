@@ -203,15 +203,15 @@ class USRPEventHandler(Thread, EventGenerator, ConnectorInterface):
         """
         event = None
 
-        if event.type == TYPE_CAR_CAR:
+        if event_obj["type"] == TYPE_CAR_CAR:
             event = Car_CarEvent()
             event.set_origin_msg(event_obj)
             event.self_parse()
-        elif event.type == TYPE_MONITOR_CAR:
+        elif event_obj["type"] == TYPE_MONITOR_CAR:
             event = Monitor_CarEvent()
             event.set_origin_msg(event_obj)
             event.self_parse()
-        elif event.type == TYPE_CUSTOMIZED:
+        elif event_obj["type"] == TYPE_CUSTOMIZED:
             if self.customized_event:
                 event = Plugin.customized_generate_event()
                 event.set_origin_msg(event_obj)
