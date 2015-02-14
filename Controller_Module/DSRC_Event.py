@@ -1,8 +1,9 @@
 __author__ = 'xuepeng'
 
+import DSRC_Plugins
+
 from DSRC_USRP_Connector import ConnectorInterface
 from DSRC_Message_Coder import MessageCoder
-import DSRC_Plugins
 from Queue import Queue
 from threading import Thread
 
@@ -106,36 +107,6 @@ class Event:
     def self_parse(self):
         raise "Not implemented!"
 
-    @staticmethod
-    def parse_event(event_obj):
-        """
-        :rtype : Event
-        :param event_obj: event object to parse
-        :type event_obj: dict
-        """
-        event = None
-
-        if event.type == TYPE_CAR_CAR:
-            event = Car_CarEvent()
-            event.set_origin_msg(event_obj)
-            event.self_parse()
-        elif event.type == TYPE_MONITOR_CAR:
-            event = Monitor_CarEvent()
-            event.set_origin_msg(event_obj)
-            event.self_parse()
-        elif event.type == TYPE_CUSTOMIZED:
-            if DSRC_Plugins.event_module:
-                event = DSRC_Plugins.event_module.CustomizedEvent()
-                event.set_origin_msg(event_obj)
-                event.self_parse()
-
-        if event:
-            event.source = event_obj['source']
-            event.destination = event_obj['destination']
-            event.type = event_obj['type']
-
-        return event
-
 
 class Car_CarEvent(Event):
     def __init__(self):
@@ -223,3 +194,33 @@ class USRPEventHandler(Thread, EventGenerator, ConnectorInterface):
     def stop_self(self):
         self.event_queue.put_nowait("QUIT")
         self.running = False
+
+    @staticmethod
+    def parse_event(event_obj):
+        """
+        :rtype : Event
+        :param event_obj: event object to parse
+        :type event_obj: dict
+        """
+        event = None
+
+        if event.type == TYPE_CAR_CAR:
+            event = Car_CarEvent()
+            event.set_origin_msg(event_obj)
+            event.self_parse()
+        elif event.type == TYPE_MONITOR_CAR:
+            event = Monitor_CarEvent()
+            event.set_origin_msg(event_obj)
+            event.self_parse()
+        elif event.type == TYPE_CUSTOMIZED:
+            if DSRC_Plugins.event_module:
+                event = DSRC_Plugins.event_module.CustomizedEvent()
+                event.set_origin_msg(event_obj)
+                event.self_parse()
+
+        if event:
+            event.source = event_obj['source']
+            event.destination = event_obj['destination']
+            event.type = event_obj['type']
+
+        return event

@@ -59,41 +59,89 @@ class DSRCUnit(Thread, EventListener, JobCallback):
         self.unit_mode = unit_mode
         self.avoid_collision_mode = avoid_collision_mode
 
+        # flag for plugin:
+        self.flag_plugin_customized_event = False
+        self.flag_plugin_customized_sender = False
+        self.flag_plugin_customized_receiver = False
+
+        # flag for message sending:
+        self.flag_msg_car_car_send = True
+        self.flag_msg_customized_send = False
+        self.customized_time_counter = 0
+        self.customized_time_intervals = 0
+
+        try:
+            self.load_ini()
+        except Exception, e:
+            print e
+
+        self.car_info()
+
         # Handle the message from USRP, and generate event
         self.USRP_event_handler = USRPEventHandler()
         self.USRP_event_handler.set_listener(listener=self)
         # The connector between USRP and Controller module
         self.USRP_connect = DsrcUSRPConnector(self.socket_port, self.USRP_event_handler)
         # iRobot
-        self.create = Create(self.robot_port)
-        # self.create = None
+        # self.create = Create(self.robot_port)
+        self.create = None
         # A processor to process the robot job in order
         self.job_processor = JobProcessor(self.create)
         self.position_tracker = DSRCPositionTracker(self.job_processor, 0, 0, 0)
-        self.car_info()
         self.bg_thread = DSRCBGThread(self.bg_run)
         self.bg_thread.start()
         self.start()
-
-        # flag for message sending:
-        self.car_car_send_flag = True
-        self.customized_send_flag = False
-        self.customized_time_counter = 0
-        self.customized_time_intervals = 0
-
-        # flag for
 
     def load_ini(self):
         dir_path = os.path.dirname(os.path.realpath(__file__))
         config = ConfigParser.SafeConfigParser()
         config_ini_path = ''.join([dir_path, "/unit_config.ini"])
+        config.read(config_ini_path)
+
+        # CarInfo Section
+        self.unit_id = config.get("CarInfo", "CarID")
+
+        # Plugin Section
+        self.flag_plugin_customized_event = config.getboolean("Plugin", "CustomizedEvent")
+        self.flag_plugin_customized_sender = config.getboolean("Plugin", "CustomizedSender")
+        self.flag_plugin_customized_receiver = config.getboolean("Plugin", "CustomizedReceiver")
+
+        # Message Section
+        self.flag_msg_car_car_send = config.getboolean("Message", "SendCarCar")
+        self.flag_msg_customized_send = config.getboolean("Message", "SendCustomized")
+
+        # Mode Section
+        self.unit_mode = config.getint("Mode", "InitialMode")
+
+        print "Customized Sender:" + str(self.flag_plugin_customized_sender)
+        # Socket Section
+        self.socket_port = config.getint("Socket", "PortNumber")
+
+        # iRobot Section
+        self.robot_port = config.get("iRobot", "Port")
+
         print config_ini_path
+
+    def car_info(self):
+        print "###################################################################"
+        print "Car Unit:" + self.unit_id
+        print "Listen to port:" + str(self.socket_port)
+        print "iRobot port:" + self.robot_port
+        print "Customized Event:" + str(self.flag_plugin_customized_event)
+        print "Customized Sender:" + str(self.flag_plugin_customized_sender)
+        print "Customized Receiver:" + str(self.flag_plugin_customized_receiver)
+        print "Sending car_car message:" + str(self.flag_msg_car_car_send)
+        print "Sending customized message:" + str(self.flag_msg_customized_send)
+        print "Initial Mode:" + str(self.unit_mode)
+        print "###################################################################"
+        print "\n"
+
 
     def bg_run(self):
         while self.running:
             self.position_tracker.update_secondary(DSRC_THREAD_UPDATE_INTERVAL)
             # Send car_car message
-            if self.car_car_send_flag:
+            if self.flag_msg_car_car_send:
                 current_job = self.job_processor.currentJob
                 if current_job:
                     action = current_job.action
@@ -111,7 +159,7 @@ class DSRCUnit(Thread, EventListener, JobCallback):
                 self.USRP_connect.send_to_USRP(msg)
 
             # Send customized message
-            if self.customized_send_flag:
+            if self.flag_msg_customized_send:
                 if self.customized_time_counter < self.customized_time_intervals:
                     self.customized_time_counter += 1
                 else:
@@ -146,9 +194,6 @@ class DSRCUnit(Thread, EventListener, JobCallback):
     def welcome_info(self):
         print "Welcome to DSRC System!"
         print "Don't know what to do? Type help to explore the system!"
-
-    def car_info(self):
-        print "Car Unit:" + self.unit_id
 
     def set_unit_mode(self, mode):
         self.unit_mode = mode
@@ -396,7 +441,7 @@ def test_follow_mode():
     unit.join()
 
 def test_lead_mode():
-    unit = unit = DSRCUnit("car1")
+    unit = DSRCUnit("car1")
     unit.set_unit_mode(DSRC_UNIT_MODE_LEAD)
     unit.join()
 

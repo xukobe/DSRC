@@ -86,8 +86,10 @@ if receiver_module:
 def customized_generate_event():
     event_module.print_event()
 
+
 def customized_event_handler(dsrc_unit, event):
     receiver_module.print_receiver()
+
 
 def customized_msg_sender(dsrc_unit):
     sender_module.print_sender()
