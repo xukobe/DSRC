@@ -1,5 +1,6 @@
 __author__ = 'xuepeng'
 
+from Controller_Module import DSRC_Event
 from Controller_Module.DSRC_Event import Event
 
 
@@ -9,7 +10,8 @@ class CustomizedEvent(Event):
         self.customized_action = None
 
     def self_parse(self):
-        self.customized_action = "GO"
+        customized_obj = self.msg_obj[DSRC_Event.TYPE_CUSTOMIZED]
+        self.customized_action = customized_obj["customized_action"]
 
 
 

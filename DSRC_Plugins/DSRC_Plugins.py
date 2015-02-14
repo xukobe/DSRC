@@ -84,6 +84,7 @@ if receiver_module:
 
 
 def customized_generate_event():
+    event = event_module.CustomizedEvent()
     event_module.print_event()
 
 

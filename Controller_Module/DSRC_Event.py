@@ -171,8 +171,9 @@ class EventListener:
         raise NotImplementedError("iRobot event listener is not implemented")
 
 class USRPEventHandler(Thread, EventGenerator, ConnectorInterface):
-    def __init__(self):
+    def __init__(self, customized_event=False):
         Thread.__init__(self)
+        self.customized_event = customized_event
         self.event_queue = Queue()
         self.running = True
         self.start()
@@ -181,22 +182,20 @@ class USRPEventHandler(Thread, EventGenerator, ConnectorInterface):
         # print msg
         self.event_queue.put(msg)
 
-
     def run(self):
         while self.running:
             event_msg = self.event_queue.get()
             if event_msg == "QUIT":
                 break
             event_obj = MessageCoder.decode(event_msg)
-            event = Event.parse_event(event_obj)
+            event = self.parse_event(event_obj)
             self.listener.usrp_event_received(event)
 
     def stop_self(self):
         self.event_queue.put_nowait("QUIT")
         self.running = False
 
-    @staticmethod
-    def parse_event(event_obj):
+    def parse_event(self, event_obj):
         """
         :rtype : Event
         :param event_obj: event object to parse
@@ -213,8 +212,8 @@ class USRPEventHandler(Thread, EventGenerator, ConnectorInterface):
             event.set_origin_msg(event_obj)
             event.self_parse()
         elif event.type == TYPE_CUSTOMIZED:
-            if DSRC_Plugins.event_module:
-                event = DSRC_Plugins.event_module.CustomizedEvent()
+            if self.customized_event:
+                event = DSRC_Plugins.customized_generate_event()
                 event.set_origin_msg(event_obj)
                 event.self_parse()
 

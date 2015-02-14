@@ -1,6 +1,7 @@
 __author__ = 'xuepeng'
 
 import json
+import DSRC_Event
 
 class MessageCoder:
     def __init__(self):
@@ -21,7 +22,7 @@ class MessageCoder:
         msg_obj = {}
         msg_obj['source'] = source
         msg_obj['destination'] = destination
-        msg_obj['type'] = 'car_car'
+        msg_obj['type'] = DSRC_Event.TYPE_CAR_CAR
         msg_obj_car = {}
         msg_obj_action = {}
         msg_obj_action['name'] = action_name

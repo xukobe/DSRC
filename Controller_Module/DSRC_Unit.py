@@ -38,8 +38,6 @@ ROBOT_REGULAR_SPEED = 30
 ROBOT_FAST_SPEED = 35
 ROBOT_RADIUS_SPEED = 90
 
-DSRC_THREAD_UPDATE_INTERVAL = 0.05
-
 
 class DSRCUnit(Thread, EventListener, JobCallback):
     def __init__(self, unit_id, socket_port=10123, robot_port="/dev/ttyUSB0", unit_mode=DSRC_UNIT_MODE_FREE,
@@ -69,6 +67,7 @@ class DSRCUnit(Thread, EventListener, JobCallback):
         self.flag_msg_customized_send = False
         self.customized_time_counter = 0
         self.customized_time_intervals = 0
+        self.dsrc_thread_update_interval = 0.05
 
         try:
             self.load_ini()
@@ -78,7 +77,7 @@ class DSRCUnit(Thread, EventListener, JobCallback):
         self.car_info()
 
         # Handle the message from USRP, and generate event
-        self.USRP_event_handler = USRPEventHandler()
+        self.USRP_event_handler = USRPEventHandler(self.flag_plugin_customized_event)
         self.USRP_event_handler.set_listener(listener=self)
         # The connector between USRP and Controller module
         self.USRP_connect = DsrcUSRPConnector(self.socket_port, self.USRP_event_handler)
@@ -101,10 +100,16 @@ class DSRCUnit(Thread, EventListener, JobCallback):
         # CarInfo Section
         self.unit_id = config.get("CarInfo", "CarID")
 
+        # Unit Setting
+        self.dsrc_thread_update_interval = config.getfloat("UnitSetting", "MiniInterval")
+
         # Plugin Section
         self.flag_plugin_customized_event = config.getboolean("Plugin", "CustomizedEvent")
         self.flag_plugin_customized_sender = config.getboolean("Plugin", "CustomizedSender")
         self.flag_plugin_customized_receiver = config.getboolean("Plugin", "CustomizedReceiver")
+        if self.flag_msg_customized_send:
+            if plugin.sender_module.SEND_INTERVALS:
+                self.customized_time_intervals = plugin.sender_module.SEND_INTERVALS
 
         # Message Section
         self.flag_msg_car_car_send = config.getboolean("Message", "SendCarCar")
@@ -113,7 +118,6 @@ class DSRCUnit(Thread, EventListener, JobCallback):
         # Mode Section
         self.unit_mode = config.getint("Mode", "InitialMode")
 
-        print "Customized Sender:" + str(self.flag_plugin_customized_sender)
         # Socket Section
         self.socket_port = config.getint("Socket", "PortNumber")
 
@@ -139,7 +143,7 @@ class DSRCUnit(Thread, EventListener, JobCallback):
 
     def bg_run(self):
         while self.running:
-            self.position_tracker.update_secondary(DSRC_THREAD_UPDATE_INTERVAL)
+            self.position_tracker.update_secondary(self.dsrc_thread_update_interval)
             # Send car_car message
             if self.flag_msg_car_car_send:
                 current_job = self.job_processor.currentJob
@@ -166,7 +170,7 @@ class DSRCUnit(Thread, EventListener, JobCallback):
                     plugin.customized_msg_sender(self)
                     self.customized_time_counter = 0
 
-            time.sleep(DSRC_THREAD_UPDATE_INTERVAL)
+            time.sleep(self.dsrc_thread_update_interval)
 
     def run(self):
         while self.running:
@@ -252,7 +256,8 @@ class DSRCUnit(Thread, EventListener, JobCallback):
             print "Lead mode - Monitor_car"
 
     def _customized_mode_received(self, event):
-        plugin.customized_event_handler(self, event)
+        if self.flag_plugin_customized_receiver:
+            plugin.customized_event_handler(self, event)
 
     def irobot_event_received(self, event):
         # TODO:
@@ -435,15 +440,18 @@ def test_position():
             job8 = Job(unit, DSRC_JobProcessor.GO, 1, 0, 90)
             unit.job_processor.insert_new_job(job8)
 
+
 def test_follow_mode():
     unit = DSRCUnit("car2")
     unit.set_unit_mode(DSRC_UNIT_MODE_FOLLOW)
     unit.join()
 
+
 def test_lead_mode():
     unit = DSRCUnit("car1")
     unit.set_unit_mode(DSRC_UNIT_MODE_LEAD)
     unit.join()
+
 
 def main():
     pass
