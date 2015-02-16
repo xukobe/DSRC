@@ -7,7 +7,7 @@ from Controller_Module.DSRC_Message_Coder import MessageCoder
 SEND_INTERVALS = 10
 
 
-def sending_message(dsrc_unit):
+def execute(dsrc_unit):
     msg = _generate_customized_message(dsrc_unit.unit_id, DSRC_Event.DESTINATION_ALL)
     dsrc_unit.USRP_connect.send_to_USRP(msg)
 
@@ -25,4 +25,4 @@ def _generate_customized_message(source, destination):
 
 
 def print_sender():
-    print "I am a DSRC_Plugin_Sender."
+    print "I am a DSRC_Plugin_Executor."

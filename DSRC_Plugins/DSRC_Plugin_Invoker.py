@@ -6,13 +6,13 @@ import os
 
 
 event_module = None
-sender_module = None
+executor_module = None
 receiver_module = None
 
 
 def load_plugin():
     global event_module
-    global sender_module
+    global executor_module
     global receiver_module
     # Initialize plugins
     dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -46,26 +46,26 @@ def load_plugin():
         print event_module_name
 
     try:
-        path_sender = config.get('CustomizedSender', 'DirectoryPath')
-        file_sender = config.get('CustomizedSender', 'FileName')
-        sender_module_name = config.get('CustomizedSender', 'ModuleName')
-        if path_sender:
-            if path_sender == "./":
+        path_executor = config.get('CustomizedExecutor', 'DirectoryPath')
+        file_executor = config.get('CustomizedExecutor', 'FileName')
+        executor_module_name = config.get('CustomizedExecutor', 'ModuleName')
+        if path_executor:
+            if path_executor == "./":
                 if dir_path not in sys.path:
                     sys.path.append(''.join([dir_path, '/']))
             else:
-                if os.path.exists(path_sender + file_sender):
-                    if path_sender not in sys.path:
-                        sys.path.append(path_sender)
+                if os.path.exists(path_executor + file_executor):
+                    if path_executor not in sys.path:
+                        sys.path.append(path_executor)
                 else:
-                    raise Exception("Sender Plugin path error!")
-        if sender_module_name:
-            sender_module = __import__(sender_module_name)
+                    raise Exception("Executor Plugin path error!")
+        if executor_module_name:
+            executor_module = __import__(executor_module_name)
     except Exception, e:
         print e
 
-    if sender_module:
-        print sender_module_name
+    if executor_module:
+        print executor_module_name
 
     try:
         path_receiver = config.get('CustomizedReceiver', 'DirectoryPath')
@@ -77,7 +77,7 @@ def load_plugin():
                     sys.path.append(''.join([dir_path, '/']))
             else:
                 if os.path.exists(path_receiver+file_receiver):
-                    if path_sender not in sys.path:
+                    if path_receiver not in sys.path:
                         sys.path.append(path_receiver)
                 else:
                     raise Exception("Receiver Plugin path error!")
@@ -102,6 +102,6 @@ def customized_event_handler(dsrc_unit, event):
     receiver_module.customized_event_handler(dsrc_unit, event)
 
 
-def customized_msg_sender(dsrc_unit):
-    global sender_module
-    sender_module.sending_message(dsrc_unit)
+def customized_execute(dsrc_unit):
+    global executor_module
+    executor_module.execute(dsrc_unit)

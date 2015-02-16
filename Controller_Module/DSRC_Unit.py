@@ -13,6 +13,7 @@ import thread
 import DSRC_Message_Coder
 import DSRC_Plugins.DSRC_Plugin_Invoker as Plugin
 import ConfigParser
+import curses
 
 from DSRC_Event import USRPEventHandler, EventListener, Event
 from DSRC_USRP_Connector import DsrcUSRPConnector
@@ -83,8 +84,8 @@ class DSRCUnit(Thread, EventListener, JobCallback):
         # The connector between USRP and Controller module
         self.USRP_connect = DsrcUSRPConnector(self.socket_port, self.USRP_event_handler)
         # iRobot
-        # self.create = Create(self.robot_port)
-        self.create = None
+        self.create = Create(self.robot_port)
+        # self.create = None
         # A processor to process the robot job in order
         self.job_processor = JobProcessor(self.create)
         self.position_tracker = DSRCPositionTracker(self.job_processor, 0, 0, 0)
@@ -171,7 +172,7 @@ class DSRCUnit(Thread, EventListener, JobCallback):
                 if self.customized_time_counter < self.customized_time_intervals:
                     self.customized_time_counter += 1
                 else:
-                    Plugin.customized_msg_sender(self)
+                    Plugin.customized_execute(self)
                     self.customized_time_counter = 0
 
             time.sleep(self.dsrc_thread_update_interval)
@@ -181,20 +182,37 @@ class DSRCUnit(Thread, EventListener, JobCallback):
             user_input = raw_input(self.unit_id + ">")
             if user_input == "help":
                 self.help_info()
-            elif user_input == 'q':
+            elif user_input == 'quit':
                 self.stop_self()
-            elif user_input == "w":
-                self.do_action(ROBOT_FORWARD)
-            elif user_input == "s":
-                self.do_action(ROBOT_BACKWARD)
-            elif user_input == "a":
-                self.do_action(ROBOT_TURN_LEFT)
-            elif user_input == "d":
-                self.do_action(ROBOT_TURN_RIGHT)
-            elif user_input == "p":
-                self.do_action(ROBOT_PAUSE)
+            elif user_input == "control":
+                self.keyboard_control()
             else:
                 pass
+
+    # Free style control
+    def keyboard_control(self):
+        screen = curses.initscr()
+        screen.keypad(True)
+        curses.noecho()
+        while True:
+            c = screen.getch()
+            if c == ord("w") or c == curses.KEY_UP:
+                self.do_action(ROBOT_FORWARD)
+            elif c == ord("s") or c == curses.KEY_DOWN:
+                self.do_action(ROBOT_BACKWARD)
+            elif c == ord("a") or c == curses.KEY_LEFT:
+                self.do_action(ROBOT_TURN_LEFT)
+            elif c == ord("d") or c == curses.KEY_RIGHT:
+                self.do_action(ROBOT_TURN_RIGHT)
+            elif c == ord("p") or c == ord(" "):
+                self.do_action(ROBOT_PAUSE)
+            elif c == ord("q") or c == curses.KEY_EXIT:
+                break
+            else:
+                pass
+            time.sleep(0.01)
+        curses.endwin()
+
 
     def help_info(self):
         print "Empty"
@@ -223,13 +241,19 @@ class DSRCUnit(Thread, EventListener, JobCallback):
         elif simple_action == ROBOT_TURN_LEFT:
             job1 = Job(self, DSRC_JobProcessor.GO, 90/ROBOT_RADIUS_SPEED, 0, ROBOT_RADIUS_SPEED)
             current_job = self.job_processor.currentJob
-            job2 = Job(self, current_job.action, current_job.timeLeft, current_job.arg1, current_job.arg2)
+            if current_job:
+                job2 = Job(self, current_job.action, current_job.timeLeft, current_job.arg1, current_job.arg2)
+            else:
+                job2 = Job(self, DSRC_JobProcessor.GO, 0, 0, 0)
             self.job_processor.add_new_job(job1)
             self.job_processor.add_new_job(job2)
         elif simple_action == ROBOT_TURN_RIGHT:
             job1 = Job(self, DSRC_JobProcessor.GO, 90/ROBOT_RADIUS_SPEED, 0, -ROBOT_RADIUS_SPEED)
             current_job = self.job_processor.currentJob
-            job2 = Job(self, current_job.action, current_job.timeLeft, current_job.arg1, current_job.arg2)
+            if current_job:
+                job2 = Job(self, current_job.action, current_job.timeLeft, current_job.arg1, current_job.arg2)
+            else:
+                job2 = Job(self, DSRC_JobProcessor.GO, 0, 0, 0)
             self.job_processor.add_new_job(job1)
             self.job_processor.add_new_job(job2)
 
@@ -447,13 +471,13 @@ def test_position():
 
 def test_follow_mode():
     unit = DSRCUnit("car2")
-    unit.set_unit_mode(DSRC_UNIT_MODE_FOLLOW)
+    # unit.set_unit_mode(DSRC_UNIT_MODE_FOLLOW)
     unit.join()
 
 
 def test_lead_mode():
     unit = DSRCUnit("car1")
-    unit.set_unit_mode(DSRC_UNIT_MODE_LEAD)
+    # unit.set_unit_mode(DSRC_UNIT_MODE_LEAD)
     unit.join()
 
 

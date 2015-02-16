@@ -2,12 +2,18 @@ __author__ = 'xuepeng'
 
 import os
 import sys
+
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+
+from DSRC_Plugins import DSRC_Plugin_Invoker as Plugin
+
+Plugin.load_plugin()
+
 
 from DSRC_USRP_Connector import DsrcUSRPConnector
 from DSRC_Event import USRPEventHandler
 from DSRC_Messager_Module.dsrc_messager import SocketClient
-
+from DSRC_Message_Coder import MessageCoder
 import DSRC_Event
 import threading
 import json
@@ -81,6 +87,33 @@ def create_car_car_type_package(name, arg1, arg2, x, y, radian):
     job['car_car'] = job_car
     return job
 
+def generate_customized_message(source, destination):
+    msg_obj = {}
+    msg_obj['source'] = source
+    msg_obj['destination'] = destination
+    msg_obj['type'] = DSRC_Event.TYPE_CUSTOMIZED
+    customized = {}
+    customized["customized_action"] = "GO"
+    msg_obj[DSRC_Event.TYPE_CUSTOMIZED] = customized
+    msg = MessageCoder.encode(msg_obj)
+    return msg
+
+
+def send_customized_message(client):
+    while True:
+        msg = generate_customized_message("car2", "all")
+        client.send(msg)
+        time.sleep(0.5)
+
+
+def main():
+    client = SocketClient(_recv_callback)
+    client.connect('127.0.0.1', 10123)
+    threading._start_new_thread(send_customized_message, (client,))
+    raw_input("Press any key to quit!")
+    exit()
+
+
 if __name__ == '__main__':
-    # main()
-    follow_mode()
+    main()
+    # follow_mode()
