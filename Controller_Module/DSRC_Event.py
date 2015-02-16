@@ -110,7 +110,7 @@ class Event:
 
 class Car_CarEvent(Event):
     def __init__(self):
-        Event.__init__()
+        Event.__init__(self)
         self.action = None
         self.coordinates = None
 
@@ -145,7 +145,7 @@ class Car_CarEvent(Event):
 
 class Monitor_CarEvent(Event):
     def __init__(self):
-        Event.__init__()
+        Event.__init__(self)
 
     def self_parse(self):
         print "Monitor_car event parse!"
