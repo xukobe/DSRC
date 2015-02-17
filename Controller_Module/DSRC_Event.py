@@ -187,9 +187,12 @@ class USRPEventHandler(Thread, EventGenerator, ConnectorInterface):
             event_msg = self.event_queue.get()
             if event_msg == "QUIT":
                 break
-            event_obj = MessageCoder.decode(event_msg)
-            event = self.parse_event(event_obj)
-            self.listener.usrp_event_received(event)
+            try:
+                event_obj = MessageCoder.decode(event_msg)
+                event = self.parse_event(event_obj)
+                self.listener.usrp_event_received(event)
+            except ValueError, e:
+                pass
         print "Event handler is stopped!"
 
     def stop_self(self):

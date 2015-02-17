@@ -29,14 +29,11 @@ def customized_event_handler(dsrc_unit, event):
         print str(x) + ":" + str(y) + ":time_f:" + str(time1_f) + ":time_s:" + str(time1_s)
 
         if abs(time1_s - time2) <= 1:
-            print "Stop"
             stopSign = True
         elif abs(time1_f - time2) <= 1:
-            print "Slow down"
             stopSign = False
             slowSign = True
         else:
-            print "Fast"
             stopSign = False
             slowSign = False
 
