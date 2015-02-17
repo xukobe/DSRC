@@ -19,23 +19,28 @@ def customized_event_handler(dsrc_unit, event):
         y2 = coord.y
         r2 = coord.radian
 
-        (x, y) = calculate_collision_point(x1, y1, r1, x2, y2, r2)
-
-        speed2 = event.action.arg1
-        time1_f = calc_time(x1, y1, x, y, 30)
-        time1_s = calc_time(x1, y1, x, y, 15)
-        time2 = calc_time(x2, y2, x, y, speed2)
-
-        print str(x) + ":" + str(y) + ":time_f:" + str(time1_f) + ":time_s:" + str(time1_s)
-
-        if abs(time1_s - time2) <= 1:
-            stopSign = True
-        elif abs(time1_f - time2) <= 1:
-            stopSign = False
-            slowSign = True
+        p = calculate_collision_point(x1, y1, r1, x2, y2, r2)
+        if not p:
+            pass
         else:
-            stopSign = False
-            slowSign = False
+            x = p[0]
+            y = p[1]
+
+            speed2 = event.action.arg1
+            time1_f = calc_time(x1, y1, x, y, 30)
+            time1_s = calc_time(x1, y1, x, y, 15)
+            time2 = calc_time(x2, y2, x, y, speed2)
+
+            print str(x) + ":" + str(y) + ":time_f:" + str(time1_f) + ":time_s:" + str(time1_s)
+
+            if abs(time1_s - time2) <= 1:
+                stopSign = True
+            elif abs(time1_f - time2) <= 1:
+                stopSign = False
+                slowSign = True
+            else:
+                stopSign = False
+                slowSign = False
 
 
 def calculate_collision_point(x1, y1, r1, x2, y2, r2):
