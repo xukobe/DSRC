@@ -2,6 +2,7 @@ __author__ = 'xuepeng'
 
 import os
 import sys
+import math
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
@@ -71,7 +72,7 @@ def follow_mode():
 def create_car_car_type_package(name, arg1, arg2, x, y, radian):
     job = {}
     job['source'] = 'car2'
-    job['destination'] = 'car1'
+    job['destination'] = 'all'
     job['type'] = 'car_car'
     job_car = {}
     job_action = {}
@@ -86,6 +87,10 @@ def create_car_car_type_package(name, arg1, arg2, x, y, radian):
     job_car['coor'] = job_coor
     job['car_car'] = job_car
     return job
+
+def generate_car_car_message(msg_obj):
+    msg = MessageCoder.encode(msg_obj)
+    return msg
 
 def generate_customized_message(source, destination):
     msg_obj = {}
@@ -105,11 +110,19 @@ def send_customized_message(client):
         client.send(msg)
         time.sleep(0.5)
 
+def send_car_car_message(client):
+    while True:
+        msg_obj = create_car_car_type_package('go', 0, 0, 90, 0, math.pi/2)
+        msg = generate_car_car_message(msg_obj)
+        print msg
+        client.send(msg)
+        time.sleep(0.2)
+
 
 def main():
     client = SocketClient(_recv_callback)
     client.connect('127.0.0.1', 10123)
-    threading._start_new_thread(send_customized_message, (client,))
+    threading._start_new_thread(send_car_car_message, (client,))
     raw_input("Press any key to quit!")
     exit()
 

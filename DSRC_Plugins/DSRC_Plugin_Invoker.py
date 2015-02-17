@@ -10,6 +10,28 @@ executor_module = None
 receiver_module = None
 
 
+def get_event_module():
+    global event_module
+    if not event_module:
+        load_plugin()
+    return event_module
+
+
+def get_executor_module():
+    global executor_module
+    if not executor_module:
+        load_plugin()
+    return event_module
+
+
+def get_receiver_module():
+    global receiver_module
+    if not receiver_module:
+        load_plugin()
+    return receiver_module
+
+
+
 def load_plugin():
     global event_module
     global executor_module
@@ -105,3 +127,7 @@ def customized_event_handler(dsrc_unit, event):
 def customized_execute(dsrc_unit):
     global executor_module
     executor_module.execute(dsrc_unit)
+
+def customized_cmd(dsrc_unit, user_input):
+    global executor_module
+    executor_module.customized_cmd(dsrc_unit, user_input)

@@ -190,6 +190,7 @@ class USRPEventHandler(Thread, EventGenerator, ConnectorInterface):
             event_obj = MessageCoder.decode(event_msg)
             event = self.parse_event(event_obj)
             self.listener.usrp_event_received(event)
+        print "Event handler is stopped!"
 
     def stop_self(self):
         self.event_queue.put_nowait("QUIT")

@@ -37,6 +37,7 @@ class SocketClient(threading.Thread):
 
     def run(self):
         self._receive()
+        print "Client is closed!"
 
     def _receive(self):
         read_len = PACKET_LEN
@@ -81,6 +82,7 @@ class SocketServer(threading.Thread):
                 self.connected_callback(client_socket)
             except socket.timeout:
                 pass
+        print "Server is closed!"
 
     def stop_self(self):
         self.running = False

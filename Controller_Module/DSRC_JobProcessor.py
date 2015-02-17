@@ -34,10 +34,10 @@ class Job:
     """
     The class is used to send a single command to iRobot
     """
-    def __init__(self, jobCallback, action, time, arg1=None, arg2=None):
+    def __init__(self, jobCallback, action, arg_time, arg1=None, arg2=None):
         self.jobCallback = jobCallback
         self.action = action
-        self.time = time
+        self.time = arg_time
         self.arg1 = arg1
         self.arg2 = arg2
         self.timeLeft = self.time
@@ -50,18 +50,24 @@ class Job:
             jobCondition.acquire()
             self._do_job(robot)
             self.currentJobStartTime = time.time()
-            jobCondition.wait(self.timeLeft)
+            if self.time == None:
+                jobCondition.wait()
+            else:
+                jobCondition.wait(self.timeLeft)
             self.currentJobEndTime = time.time()
-            timeExecuted = (self.currentJobEndTime - self.currentJobStartTime)
-            self.timeLeft = self.timeLeft - timeExecuted
+            time_executed = (self.currentJobEndTime - self.currentJobStartTime)
+            if not self.time:
+                self.timeLeft = 0
+            else:
+                self.timeLeft = self.timeLeft - time_executed
             if self.timeLeft <= 0:
                 self.finished = True
                 if self.jobCallback:
-                    self.jobCallback.job_finished(self.action, self.arg1, self.arg2, timeExecuted)
+                    self.jobCallback.job_finished(self.action, self.arg1, self.arg2, time_executed)
             else:
                 self.finished = False
                 if self.jobCallback:
-                    self.jobCallback.job_paused(self.action, self.arg1, self.arg2, timeExecuted)
+                    self.jobCallback.job_paused(self.action, self.arg1, self.arg2, time_executed)
             jobCondition.release()
         else:
             pass
@@ -154,13 +160,20 @@ class JobProcessor(Thread):
 
             if not self.currentJob or self.currentJob.isFinished():
                 if len(self.queue) == 0:
-                    self.pause = True
+                    self.pause_processor()
                     continue
                 else:
                     self.currentJob = self.queue.popleft()
 
             self.currentJob.execute(self.robot, self.jobCondition)
+        print "Job processor is stopped!"
 
+    def cancel_current_job(self):
+        if self.currentJob:
+            self.currentJob.time = None
+        self.jobCondition.acquire()
+        self.jobCondition.notifyAll()
+        self.jobCondition.release()
 
     def pause_processor(self, save_state=True):
         """
@@ -197,7 +210,9 @@ class JobProcessor(Thread):
         """
         Stop the current thread
         """
+        self.queue.clear()
         self.running = False
+        self.cancel_current_job()
         self.resume_processor()
 
 def main():

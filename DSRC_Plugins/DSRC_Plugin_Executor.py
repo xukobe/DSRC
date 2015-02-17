@@ -12,6 +12,9 @@ def execute(dsrc_unit):
     dsrc_unit.USRP_connect.send_to_USRP(msg)
 
 
+def customized_cmd(dsrc_unit, user_input):
+    pass
+
 def _generate_customized_message(source, destination):
     msg_obj = {}
     msg_obj['source'] = source

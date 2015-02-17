@@ -60,7 +60,7 @@ class DSRCUnit(Thread, EventListener, JobCallback):
 
         # flag for plugin:
         self.flag_plugin_customized_event = False
-        self.flag_plugin_customized_sender = False
+        self.flag_plugin_customized_executor = False
         self.flag_plugin_customized_receiver = False
 
         # flag for message sending:
@@ -107,11 +107,12 @@ class DSRCUnit(Thread, EventListener, JobCallback):
 
         # Plugin Section
         self.flag_plugin_customized_event = config.getboolean("Plugin", "CustomizedEvent")
-        self.flag_plugin_customized_sender = config.getboolean("Plugin", "CustomizedSender")
+        self.flag_plugin_customized_executor = config.getboolean("Plugin", "CustomizedExecutor")
         self.flag_plugin_customized_receiver = config.getboolean("Plugin", "CustomizedReceiver")
         if self.flag_msg_customized_send:
-            if Plugin.sender_module.SEND_INTERVALS:
-                self.customized_time_intervals = Plugin.sender_module.SEND_INTERVALS
+            executor_module = Plugin.get_executor_module()
+            if executor_module.SEND_INTERVALS:
+                self.customized_time_intervals = executor_module.SEND_INTERVALS
 
         # Message Section
         self.flag_msg_car_car_send = config.getboolean("Message", "SendCarCar")
@@ -137,7 +138,7 @@ class DSRCUnit(Thread, EventListener, JobCallback):
         print "Listen to port:" + str(self.socket_port)
         print "iRobot port:" + self.robot_port
         print "Customized Event:" + str(self.flag_plugin_customized_event)
-        print "Customized Sender:" + str(self.flag_plugin_customized_sender)
+        print "Customized Executor:" + str(self.flag_plugin_customized_executor)
         print "Customized Receiver:" + str(self.flag_plugin_customized_receiver)
         print "Sending car_car message:" + str(self.flag_msg_car_car_send)
         print "Sending customized message:" + str(self.flag_msg_customized_send)
@@ -168,7 +169,7 @@ class DSRCUnit(Thread, EventListener, JobCallback):
                 self.USRP_connect.send_to_USRP(msg)
 
             # Send customized message
-            if self.flag_msg_customized_send:
+            if self.flag_plugin_customized_executor:
                 if self.customized_time_counter < self.customized_time_intervals:
                     self.customized_time_counter += 1
                 else:
@@ -186,13 +187,30 @@ class DSRCUnit(Thread, EventListener, JobCallback):
                 self.stop_self()
             elif user_input == "control":
                 self.keyboard_control()
+            elif user_input == "position":
+                self.position_info()
+            elif user_input == "safe mode":
+                self.create.toSafeMode()
+            elif user_input == "full mode":
+                self.create.toFullMode()
+            elif user_input == "reconnect":
+                self.create.reconnect(self.robot_port)
             else:
-                pass
+                Plugin.customized_cmd(self, user_input)
+        print "User interaction thread is stopped!"
 
     # Free style control
     def keyboard_control(self):
         screen = curses.initscr()
         screen.keypad(True)
+        screen.clear()
+        instruction = "'w' or up_arrow to go forward\n" \
+                      "'s' or down_arrow to go backward\n" \
+                      "'a' or left_arrow to turn left\n" \
+                      "'d' or right_arrow to turn right\n" \
+                      "'p' or space to pause\n" \
+                      "'q' or esc to quit"
+        screen.addstr(instruction)
         curses.noecho()
         while True:
             c = screen.getch()
@@ -211,8 +229,13 @@ class DSRCUnit(Thread, EventListener, JobCallback):
             else:
                 pass
             time.sleep(0.01)
+
         curses.endwin()
 
+    def position_info(self):
+        print "X: " + str(self.position_tracker.x)
+        print "Y: " + str(self.position_tracker.y)
+        print "Direction: " + str((self.position_tracker.radian/math.pi)*180)
 
     def help_info(self):
         print "Empty"
@@ -233,10 +256,10 @@ class DSRCUnit(Thread, EventListener, JobCallback):
             job = Job(self, DSRC_JobProcessor.GO, 0, 0, 0)
             self.job_processor.add_new_job(job)
         elif simple_action == ROBOT_FORWARD:
-            job = Job(self, DSRC_JobProcessor.GO, 0, ROBOT_REGULAR_SPEED, 0)
+            job = Job(self, DSRC_JobProcessor.GO, None, ROBOT_REGULAR_SPEED, 0)
             self.job_processor.add_new_job(job)
         elif simple_action == ROBOT_BACKWARD:
-            job = Job(self, DSRC_JobProcessor.GO, 0, -ROBOT_REGULAR_SPEED, 0)
+            job = Job(self, DSRC_JobProcessor.GO, None, -ROBOT_REGULAR_SPEED, 0)
             self.job_processor.add_new_job(job)
         elif simple_action == ROBOT_TURN_LEFT:
             job1 = Job(self, DSRC_JobProcessor.GO, 90/ROBOT_RADIUS_SPEED, 0, ROBOT_RADIUS_SPEED)
@@ -256,6 +279,7 @@ class DSRCUnit(Thread, EventListener, JobCallback):
                 job2 = Job(self, DSRC_JobProcessor.GO, 0, 0, 0)
             self.job_processor.add_new_job(job1)
             self.job_processor.add_new_job(job2)
+        self.job_processor.cancel_current_job()
 
     def usrp_event_received(self, event):
         if not event:
@@ -301,11 +325,9 @@ class DSRCUnit(Thread, EventListener, JobCallback):
 
     def stop_self(self):
         self.job_processor.stop_processor()
-        # self.position_tracker.stop_self()
         self.USRP_event_handler.stop_self()
         self.USRP_connect.stop_self()
         self.running = False
-        exit()
 
 
 class DSRCBGThread(Thread):
@@ -316,6 +338,7 @@ class DSRCBGThread(Thread):
 
     def run(self):
         self.bg_func()
+        print "Background thread is stopped!"
 
 
 # TODO: Create a position calculation looper with 0.01s interval. The position can be classified into two different types
@@ -345,15 +368,12 @@ class DSRCPositionTracker:
 
     def update_secondary(self, update_interval):
         job = self.processor.currentJob
-        if job:
-            if job.action == DSRC_JobProcessor.GO:
-                with self.pos_lock:
-                    self._calculate_secondary_position(job.arg1, job.arg2, update_interval)
-                    if self.processor.pause:
-                        self._x = self.x
-                        self._y = self.y
-                        self._radian = self.radian
-                    self.primary_updated = False
+        if not self.processor.pause:
+            if job:
+                if job.action == DSRC_JobProcessor.GO:
+                    with self.pos_lock:
+                        self._calculate_secondary_position(job.arg1, job.arg2, update_interval)
+                        self.primary_updated = False
 
     #TODO: test the method
     def _calculate_secondary_position(self, arg1, arg2, arg_time):
@@ -485,8 +505,4 @@ def main():
     pass
 
 if __name__ == '__main__':
-    args = sys.argv
-    if args[1] == "follow":
-        test_follow_mode()
-    else:
-        test_lead_mode()
+    test_follow_mode()
