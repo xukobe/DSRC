@@ -112,7 +112,7 @@ def send_customized_message(client):
 
 def send_car_car_message(client):
     while True:
-        msg_obj = create_car_car_type_package('go', 0, 0, 90, 0, math.pi/2)
+        msg_obj = create_car_car_type_package('go', 0, 0, 90, 0, 0)
         msg = generate_car_car_message(msg_obj)
         print msg
         client.send(msg)
