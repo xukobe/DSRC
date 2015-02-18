@@ -9,6 +9,8 @@ slowSign = True
 
 
 def customized_event_handler(dsrc_unit, event):
+    global stopSign
+    global slowSign
     if event.type == Event.TYPE_CAR_CAR:
         x1 = dsrc_unit.position_tracker.x
         y1 = dsrc_unit.position_tracker.y
@@ -31,7 +33,7 @@ def customized_event_handler(dsrc_unit, event):
             time1_s = calc_time(x1, y1, x, y, 15)
             time2 = calc_time(x2, y2, x, y, speed2)
 
-            print str(x) + ":" + str(y) + ":time_f:" + str(time1_f) + ":time_s:" + str(time1_s)
+            # print str(x) + ":" + str(y) + ":time_f:" + str(time1_f) + ":time_s:" + str(time1_s) + ":time2:" + str(time2)
 
             if abs(time1_s - time2) <= 1:
                 stopSign = True
