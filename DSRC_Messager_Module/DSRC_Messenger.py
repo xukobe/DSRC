@@ -8,7 +8,7 @@ import threading
 PACKET_LEN = 512
 
 class SocketClient(threading.Thread):
-    def __init__(self, recv_callback,sock=None):
+    def __init__(self, recv_callback, sock=None):
         super(SocketClient, self).__init__()
         self.recv_callback = recv_callback
         self.running = True
@@ -66,6 +66,7 @@ class SocketClient(threading.Thread):
 
     def stop_self(self):
         self.running = False
+        self.sock.close()
 
 class SocketServer(threading.Thread):
     def __init__(self,connected_callback, port = 10123):
