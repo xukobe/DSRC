@@ -3,8 +3,8 @@ __author__ = 'xuepeng'
 import pmt
 import sys
 from gnuradio import gr
-from dsrc_messager_blocks import DsrcClient
-from dsrc_messager_blocks import DsrcServer
+from DSRC_Messenger_Blocks import DsrcClient
+from DSRC_Messenger_Blocks import DsrcServer
 
 class test_sender(gr.basic_block):
     def __init__(self):

@@ -18,7 +18,7 @@ from gnuradio.eng_option import eng_option
 from gnuradio.filter import firdes
 from optparse import OptionParser
 from wifi_phy_hier import wifi_phy_hier
-from dsrc_messager_blocks import DsrcClient
+from DSRC_Messenger_Blocks import DsrcClient
 from dsrc_message_generator import message_generator
 from dsrc_message_collector import message_collector
 import foo
@@ -159,30 +159,6 @@ class WifiTransceiver(gr.top_block):
         self.encoding = encoding
 
 if __name__ == '__main__':
-    #tb.start()
-    # sock = socketclient()
-    # sock.connect('127.0.0.1',10213)
-    # while True:
-    #     try:
-	 #    f = open('/home/xuepeng/Desktop/mine/Demo2/data.txt','r');
-	 #    mystr = f.read()
-    #         for item in mystr.split(' '):
-    #             key_value = item.split(':')
-    #             if(key_value[0] == 'x'):
-    #                 x = key_value[1]
-    #             elif(key_value[0] == 'y'):
-    #                 y = key_value[1]
-    #             elif(key_value[0] == 'id'):
-    #                 car_id = key_value[1]
-    #         mapstr = "MAP,"+car_id+","+x+","+y+"\n"
-    #         print mapstr
-    #         sock.traffic_send(mapstr)
-	 #    f.close()
-    #         time.sleep(1)
-    #     except IOError:
-    #         print "data.txt not found!"
-    #tb.stop()
-    #tb.wait()
     parser = OptionParser(option_class=eng_option, usage="%prog: [options]")
     (options, args) = parser.parse_args()
     tb = WifiTransceiver()
@@ -192,4 +168,5 @@ if __name__ == '__main__':
     except EOFError:
         pass
     tb.stop()
-    tb.wait()
+    tb.transmitter.stop_self()
+    exit()

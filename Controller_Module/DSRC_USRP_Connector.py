@@ -1,6 +1,6 @@
 __author__ = 'xuepeng'
 
-from DSRC_Messager_Module.dsrc_messager import SocketServer, SocketClient
+from DSRC_Messager_Module.DSRC_Messenger import SocketServer, SocketClient
 
 class ConnectorInterface:
     """

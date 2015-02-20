@@ -2,8 +2,8 @@ __author__ = 'xuepeng'
 
 import threading
 
-from dsrc_messager import SocketClient
-from dsrc_messager import SocketServer
+from DSRC_Messenger import SocketClient
+from DSRC_Messenger import SocketServer
 
 
 client = None

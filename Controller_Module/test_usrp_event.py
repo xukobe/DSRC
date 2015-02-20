@@ -13,7 +13,7 @@ Plugin.load_plugin()
 
 from DSRC_USRP_Connector import DsrcUSRPConnector
 from DSRC_Event import USRPEventHandler
-from DSRC_Messager_Module.dsrc_messager import SocketClient
+from DSRC_Messager_Module.DSRC_Messenger import SocketClient
 from DSRC_Message_Coder import MessageCoder
 import DSRC_Event
 import threading

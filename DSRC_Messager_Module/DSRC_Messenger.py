@@ -11,6 +11,7 @@ class SocketClient(threading.Thread):
     def __init__(self, recv_callback,sock=None):
         super(SocketClient, self).__init__()
         self.recv_callback = recv_callback
+        self.running = True
         if sock is None:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         else:
@@ -43,7 +44,6 @@ class SocketClient(threading.Thread):
         read_len = PACKET_LEN
         total_len = PACKET_LEN
         msg = ''
-        self.running = True
         while self.running:
             data = self.sock.recv(read_len)
             if data == '':

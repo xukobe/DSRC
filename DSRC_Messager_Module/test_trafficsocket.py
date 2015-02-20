@@ -4,8 +4,8 @@ import threading
 import socket
 import sys
 
-from dsrc_messager import SocketClient
-from dsrc_messager import SocketServer
+from DSRC_Messenger import SocketClient
+from DSRC_Messenger import SocketServer
 
 
 client = None

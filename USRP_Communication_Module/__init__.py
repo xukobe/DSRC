@@ -1,4 +1,4 @@
 __author__ = 'xuepeng'
 
-import dsrc_messager_blocks
-import dsrc_gui_connector
+import DSRC_Messenger_Blocks
+import DSRC_USRP_Transceiver
