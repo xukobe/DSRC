@@ -50,7 +50,11 @@ class DsrcClient(gr.basic_block):
         #msg_str = pmt.symbol_to_string(msg_pmt)
         # Here I just cut the string from the 24th character. the previous 24 chars are the header
         msg_cutted = msg_str[24:]
-        self.client.send(msg_cutted)
+        try:
+            self.client.send(msg_cutted)
+        except Exception,e:
+            print "Connection is down! Exiting!"
+            exit()
 
     def stop_self(self):
         self.client.stop_self()
@@ -97,7 +101,10 @@ class DsrcServer(gr.basic_block):
         msg_cutted = msg_str[24:]
         # print "Server: Handle MSG: "+msg_cutted
         for i in range(len(self.client)):
-            self.client[i].send(msg_cutted)
+            try:
+                self.client[i].send(msg_cutted)
+            except Exception, e:
+                self.client.remove(self.client[i])
 
     def stop_self(self):
         for i in range(len(self.client)):

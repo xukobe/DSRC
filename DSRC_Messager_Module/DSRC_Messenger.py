@@ -45,16 +45,20 @@ class SocketClient(threading.Thread):
         total_len = PACKET_LEN
         msg = ''
         while self.running:
-            data = self.sock.recv(read_len)
-            if data == '':
-                print "socket connection broken"
-                self.running = False
-            read_len = read_len - len(data)
-            msg = msg + data
-            if(read_len == 0):
-                self._handle_received(msg)
-                read_len = PACKET_LEN
-                msg = ''
+            try:
+                data = self.sock.recv(read_len)
+                if data == '':
+                    print "socket connection broken"
+                    self.running = False
+                read_len = read_len - len(data)
+                msg = msg + data
+                if(read_len == 0):
+                    self._handle_received(msg)
+                    read_len = PACKET_LEN
+                    msg = ''
+            except Exception, e:
+                print "A Client disconnected!"
+                break
 
     def _handle_received(self,msg):
         message = msg.replace("\n", "")
