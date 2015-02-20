@@ -195,9 +195,32 @@ class DSRCUnit(Thread, EventListener, JobCallback):
                 self.create.toFullMode()
             elif user_input == "reconnect":
                 self.create.reconnect(self.robot_port)
+            elif user_input == "setpos":
+                self.setpos()
             else:
                 Plugin.customized_cmd(self, user_input)
         print "User interaction thread is stopped!"
+
+    def setpos(self):
+        x_str = raw_input("X:")
+        try:
+            x = float(x_str)
+        except ValueError, e:
+            print "Cannot convert " + x_str + " into a number."
+            return
+        y_str = raw_input("Y:")
+        try:
+            y = float(y_str)
+        except ValueError, e:
+            print "Cannot convert " + y_str + " into a number."
+            return
+        radian_str = raw_input("Radian:")
+        try:
+            radian = float(radian_str)
+        except ValueError, e:
+            print "Cannot convert " + radian_str + " into a number."
+            return
+        self.position_tracker.set_pos(x, y, radian)
 
     # Free style control
     def keyboard_control(self):
@@ -453,6 +476,12 @@ class DSRCPositionTracker:
                 self._radian = self.radian = new_radian_pos['radian']
             self.primary_updated = True
         # print "Position:"+str(self.x) + ":" + str(self.y) + ":" + str(self.radian)
+
+    def set_pos(self, x, y, radian):
+        with self.pos_lock:
+            self.x = self._x = x
+            self.y = self._y = y
+            self.radian = self._radian =radian
 
     # def stop_self(self):
     #     self.running = False
