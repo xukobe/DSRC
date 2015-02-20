@@ -351,6 +351,7 @@ class DSRCUnit(Thread, EventListener, JobCallback):
         self.USRP_event_handler.stop_self()
         self.USRP_connect.stop_self()
         self.running = False
+        exit()
 
 
 class DSRCBGThread(Thread):
