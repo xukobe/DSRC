@@ -18,7 +18,7 @@ from gnuradio.eng_option import eng_option
 from gnuradio.filter import firdes
 from optparse import OptionParser
 from wifi_phy_hier import wifi_phy_hier
-from DSRC_Messenger_Blocks import DsrcClient
+from DSRC_Messenger_Blocks import DsrcServer
 from dsrc_message_generator import message_generator
 from dsrc_message_collector import message_collector
 import foo
@@ -82,7 +82,7 @@ class WifiTransceiver(gr.top_block):
         self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_char*1, "/tmp/ofdm.pcap", True)
         self.blocks_file_sink_0.set_unbuffered(True)
         #Add  by Xuepeng Xu
-        self.transmitter = DsrcClient()
+        self.transmitter = DsrcServer()
         #self.message_generator = message_generator()
         #self.message_collector = message_collector()
 

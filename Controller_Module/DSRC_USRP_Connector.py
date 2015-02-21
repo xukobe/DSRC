@@ -17,25 +17,28 @@ class DsrcUSRPConnector:
     """
     Connector between USRP and controller
     """
-    def __init__(self, port=10123, callbackInterface=None):
+    def __init__(self, ip="127.0.0.1", port=10123, callbackInterface=None):
         """
+        :param ip: IP to connect
         :param port: Port for server socket
         :param callbackInterface: callback object
         :type port: int
         :type callbackInterface: ConnectorInterface
         """
+        self.IP = ip
         self.port = port
         self.callback = callbackInterface
-        self.client = []
-        self.server = SocketServer(self._connected_callback,self.port)
-        self.server.start()
-        print "Wait for USRP module to connect..."
+        self.client = SocketClient(self._recv_callback)
+        print "Connecting to " + self.ip + ":" + self.port + "..."
+        self.client.connect("127.0.0.1", self.port)
+        print "Connected!"
+        self.client.start()
 
-    def _connected_callback(self, incoming_socket):
-        client = SocketClient(self._recv_callback, incoming_socket)
-        client.start()
-        print "A USRP module is connecting..."
-        self.client.append(client)
+    # def _connected_callback(self, incoming_socket):
+    #     client = SocketClient(self._recv_callback, incoming_socket)
+    #     client.start()
+    #     print "A USRP module is connecting..."
+    #     self.client.append(client)
 
     def _recv_callback(self, msg):
         if self.callback:
@@ -52,13 +55,10 @@ class DsrcUSRPConnector:
         """
         :type msg: str
         """
-        for i in range(len(self.client)):
-            try:
-                self.client[i].send(msg)
-            except Exception, e:
-                self.client.remove(self.client[i])
+        try:
+            self.client.send(msg)
+        except Exception, e:
+            print self.IP + ":" + self.port + " connection refused!"
 
     def stop_self(self):
-        for i in range(len(self.client)):
-            self.client[i].stop_self()
-        self.server.stop_self()
+        self.client.stop_self()
