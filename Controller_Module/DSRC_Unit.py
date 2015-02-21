@@ -41,7 +41,7 @@ ROBOT_RADIUS_SPEED = 90
 
 
 class DSRCUnit(Thread, EventListener, JobCallback):
-    def __init__(self, unit_id, socket_port=10123, robot_port="/dev/ttyUSB0", unit_mode=DSRC_UNIT_MODE_FREE,
+    def __init__(self, unit_id, IP="127.0.0.1", socket_port=10123, robot_port="/dev/ttyUSB0", unit_mode=DSRC_UNIT_MODE_FREE,
                  avoid_collision_mode=False):
         """
         :param unit_id: The ID of the car unit
@@ -54,6 +54,7 @@ class DSRCUnit(Thread, EventListener, JobCallback):
         self.running = True
         self.unit_id = unit_id
         self.socket_port = socket_port
+        self.IP = IP
         self.robot_port = robot_port
         self.unit_mode = unit_mode
         self.avoid_collision_mode = avoid_collision_mode
@@ -82,7 +83,7 @@ class DSRCUnit(Thread, EventListener, JobCallback):
         self.USRP_event_handler = USRPEventHandler(self.flag_plugin_customized_event)
         self.USRP_event_handler.set_listener(listener=self)
         # The connector between USRP and Controller module
-        self.USRP_connect = DsrcUSRPConnector(self.socket_port, self.USRP_event_handler)
+        self.USRP_connect = DsrcUSRPConnector(self.IP, self.socket_port, self.USRP_event_handler)
         # iRobot
         # self.create = Create(self.robot_port)
         self.create = None
