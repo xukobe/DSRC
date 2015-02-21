@@ -29,7 +29,7 @@ class DsrcUSRPConnector:
         self.port = port
         self.callback = callbackInterface
         self.client = SocketClient(self._recv_callback)
-        print "Connecting to " + self.IP + ":" + self.port + "..."
+        print "Connecting to " + self.IP + ":" + str(self.port) + "..."
         self.client.connect("127.0.0.1", self.port)
         print "Connected!"
         self.client.start()
