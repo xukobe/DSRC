@@ -66,6 +66,7 @@ class SocketClient(threading.Thread):
 
     def stop_self(self):
         self.running = False
+        self.sock.shutdown()
         self.sock.close()
 
 class SocketServer(threading.Thread):
@@ -91,6 +92,7 @@ class SocketServer(threading.Thread):
 
     def stop_self(self):
         self.running = False
+        self.server_socket.close()
 
 # def main():
 #     sock = trafficsocket()
