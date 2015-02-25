@@ -1,7 +1,7 @@
 __author__ = 'xuepeng'
 
-from Controller_Module import DSRC_Event
-from Controller_Module.DSRC_Event import Event
+from Event_Module import DSRC_Event
+from Event_Module.DSRC_Event import Event
 
 
 class CustomizedEvent(Event):

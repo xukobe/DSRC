@@ -1,11 +1,12 @@
 __author__ = 'xuepeng'
 
-import DSRC_Plugins.DSRC_Plugin_Invoker as Plugin
-
-from DSRC_USRP_Connector import ConnectorInterface
-from DSRC_Message_Coder import MessageCoder
 from Queue import Queue
 from threading import Thread
+
+import DSRC_Plugins.DSRC_Plugin_Invoker as Plugin
+from DSRC_Messager_Module.DSRC_USRP_Connector import ConnectorInterface
+from Event_Module.DSRC_Message_Coder import MessageCoder
+
 
 
 ################Destination##################
@@ -184,7 +185,7 @@ class USRPEventHandler(Thread, EventGenerator, ConnectorInterface):
 
     def run(self):
         while self.running:
-            event_msg = self.event_queue.get()
+            event_msg = self.event_queue.gset()
             if event_msg == "QUIT":
                 break
             try:

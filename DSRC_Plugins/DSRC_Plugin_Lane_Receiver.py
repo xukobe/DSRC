@@ -1,7 +1,9 @@
 __author__ = 'xuepeng'
 
 import math
-import Controller_Module.DSRC_Event as Event
+
+import Event_Module.DSRC_Event as Event
+
 
 stopSign = False
 

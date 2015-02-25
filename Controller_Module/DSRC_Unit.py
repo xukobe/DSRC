@@ -6,20 +6,18 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 import math
-import DSRC_Event
+from Event_Module import DSRC_Event, DSRC_Message_Coder
 import DSRC_JobProcessor
 import time
 import thread
-import DSRC_Message_Coder
 import DSRC_Plugins.DSRC_Plugin_Invoker as Plugin
 import ConfigParser
 import curses
 
-from DSRC_Event import USRPEventHandler, EventListener, Event
-from DSRC_USRP_Connector import DsrcUSRPConnector
+from Event_Module.DSRC_Event import USRPEventHandler, EventListener
+from DSRC_Messager_Module.DSRC_USRP_Connector import DsrcUSRPConnector
 from DSRC_JobProcessor import JobProcessor, Job, JobCallback
-from iRobot_Module.create import Create
-from threading import Thread, Lock
+from threading import Thread
 
 
 DSRC_UNIT_MODE_LEAD = 1

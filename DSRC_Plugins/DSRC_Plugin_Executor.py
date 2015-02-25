@@ -1,7 +1,7 @@
 __author__ = 'xuepeng'
 
-from Controller_Module import DSRC_Event
-from Controller_Module.DSRC_Message_Coder import MessageCoder
+from Event_Module import DSRC_Event
+from Event_Module.DSRC_Message_Coder import MessageCoder
 
 # Times of the MiniInterval in unit_config
 SEND_INTERVALS = 10

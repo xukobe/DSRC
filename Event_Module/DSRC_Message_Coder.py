@@ -1,7 +1,9 @@
 __author__ = 'xuepeng'
 
 import json
-import DSRC_Event
+
+from Event_Module import DSRC_Event
+
 
 class MessageCoder:
     def __init__(self):

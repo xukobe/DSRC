@@ -2,7 +2,6 @@ __author__ = 'xuepeng'
 
 import os
 import sys
-import math
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
@@ -11,11 +10,11 @@ from DSRC_Plugins import DSRC_Plugin_Invoker as Plugin
 Plugin.load_plugin()
 
 
-from DSRC_USRP_Connector import DsrcUSRPConnector
-from DSRC_Event import USRPEventHandler
+from DSRC_Messager_Module.DSRC_USRP_Connector import DsrcUSRPConnector
+from Event_Module.DSRC_Event import USRPEventHandler
 from DSRC_Messager_Module.DSRC_Messenger import SocketClient
-from DSRC_Message_Coder import MessageCoder
-import DSRC_Event
+from Event_Module.DSRC_Message_Coder import MessageCoder
+from Event_Module import DSRC_Event
 import threading
 import json
 import time
