@@ -30,11 +30,12 @@ def execute(dsrc_unit):
 
 
 def customized_cmd(dsrc_unit, user_input):
+    global Lane_sign
     if user_input == "auto":
         print "Auto driving!"
-        global Lane_sign
         Lane_sign = True
     elif user_input == "back":
         print "Back to manual mode"
-        global Lane_sign
         Lane_sign = False
+    elif user_input == 'plugin':
+        print "I am lane executor!"

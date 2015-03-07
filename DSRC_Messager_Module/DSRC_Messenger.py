@@ -70,7 +70,7 @@ class SocketClient(threading.Thread):
         self.sock.close()
 
 class SocketServer(threading.Thread):
-    def __init__(self,connected_callback, port = 10123):
+    def __init__(self,connected_callback, port = 10124):
         super(SocketServer, self).__init__()
         self.port = port
         self.connected_callback = connected_callback
@@ -87,6 +87,8 @@ class SocketServer(threading.Thread):
                 self.server_socket.settimeout(2)
                 self.connected_callback(client_socket)
             except socket.timeout:
+                pass
+            except Exception, e:
                 pass
         print "Server is closed!"
 

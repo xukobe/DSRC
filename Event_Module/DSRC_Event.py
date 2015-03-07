@@ -1,13 +1,5 @@
 __author__ = 'xuepeng'
 
-from Queue import Queue
-from threading import Thread
-
-import DSRC_Plugins.DSRC_Plugin_Invoker as Plugin
-from DSRC_Messager_Module.DSRC_USRP_Connector import ConnectorInterface
-from Event_Module.DSRC_Message_Coder import MessageCoder
-
-
 
 ################Destination##################
 DESTINATION_ALL = "all"
@@ -17,16 +9,29 @@ TYPE_MONITOR_CAR = "monitor_car"
 TYPE_CAR_CAR = "car_car"
 TYPE_CUSTOMIZED = "customized"
 
+###################SubType####################
+SUBTYPE_SETTING = "setting"
+SUBTYPE_BATCH = "batch"
+SUBTYPE_CMD = "cmd"
+
 ################Monitor_Car##################
 SETTINGS_NAME_STYLE = "style"
 SETTINGS_NAME_STYLE_FOLLOW = "follow"
 SETTINGS_NAME_STYLE_LEAD = "lead"
 SETTINGS_NAME_STYLE_FREE = "free"
+SETTINGS_NAME_MINI_INTERVAL = 'mini_interval'
 
 COMMAND_NAME_SAFE_MODE = "safe_mode"
 COMMAND_NAME_FULL_MODE = "full_mode"
 COMMAND_NAME_RESTART = "restart"
 COMMAND_NAME_SHUT_DOWN = "shutdown"
+COMMAND_NAME_GO = 'go'
+COMMAND_NAME_GO_TO = 'go_to'
+COMMAND_NAME_PLUGIN = 'plugin'
+COMMAND_NAME_STOP = 'stop'
+COMMAND_NAME_DISABLE_PLUGIN = 'disable_plugin'
+COMMAND_NAME_ASK_PLUGIN = 'ask_plugin'
+COMMAND_NAME_RESPONSE_PLUGIN = 'response_plugin'
 
 BATCH_FLOW_START = "start"
 BATCH_FLOW_JOB = "job"
@@ -39,10 +44,10 @@ ACTION_NAME_GO = "go"
 ACTION_NAME_PAUSE = "pause"
 
 class EventAction:
-    def __init__(self):
-        self.name = None
-        self.arg1 = None
-        self.arg2 = None
+    def __init__(self, name=None, arg1=None, arg2=None):
+        self.name = name
+        self.arg1 = arg1
+        self.arg2 = arg2
 
     def set_name(self, name):
         self.name = name
@@ -71,9 +76,9 @@ class EventCoordinates:
 
 
 class EventJob:
-    def __init__(self):
-        self.action = None
-        self.time = 0
+    def __init__(self, name=None, arg1=None, arg2=None, time=0):
+        self.action = EventAction(name, arg1, arg2)
+        self.time = time
 
     def set_action(self, action):
         """
@@ -144,12 +149,48 @@ class Car_CarEvent(Event):
             self.set_coor(coor)
 
 
+class EventSetting:
+    def __init__(self, name=None, value=None):
+        self.name = name
+        self.value = value
+
+
+class EventCommand:
+    def __init__(self, name=None, args=None):
+        self.name = name
+        self.args = args
+
+
+class EventBatch:
+    def __init__(self, name=None, arg1=None, arg2=None, time=None):
+        self.job = EventJob(name, arg1, arg2, time)
+
+
 class Monitor_CarEvent(Event):
     def __init__(self):
         Event.__init__(self)
+        self.sub_type = None
+        self.setting = None
+        self.command = None
+        self.batch = None
 
     def self_parse(self):
-        print "Monitor_car event parse!"
+        if self.msg_obj:
+            monitor_car_obj = self.msg_obj[TYPE_MONITOR_CAR]
+            self.sub_type = self.msg_obj['subtype']
+            if self.sub_type == SUBTYPE_SETTING:
+                setting_obj = monitor_car_obj['setting']
+                self.setting = EventSetting(setting_obj['name'], setting_obj['value'])
+            elif self.sub_type == SUBTYPE_CMD:
+                cmd_obj = monitor_car_obj['cmd']
+                self.command = EventCommand(cmd_obj['name'], cmd_obj['args'])
+            elif self.sub_type == SUBTYPE_BATCH:
+                batch_obj = monitor_car_obj['batch']
+                job_obj = batch_obj['job']
+                action_obj = job_obj['action']
+                time = job_obj['time']
+                self.batch = EventBatch(action_obj['name'], action_obj['arg1'], action_obj['arg2'], time)
+
 
 class EventGenerator:
     def __init__(self):
@@ -161,6 +202,7 @@ class EventGenerator:
         """
         self.listener = listener
 
+
 class EventListener:
     def __init__(self):
         pass
@@ -170,61 +212,3 @@ class EventListener:
 
     def irobot_event_received(self,event):
         raise NotImplementedError("iRobot event listener is not implemented")
-
-class USRPEventHandler(Thread, EventGenerator, ConnectorInterface):
-    def __init__(self, customized_event=False):
-        Thread.__init__(self)
-        self.customized_event = customized_event
-        self.event_queue = Queue()
-        self.running = True
-        self.start()
-
-    def msg_received(self, msg):
-        # print msg
-        self.event_queue.put(msg)
-
-    def run(self):
-        while self.running:
-            event_msg = self.event_queue.gset()
-            if event_msg == "QUIT":
-                break
-            try:
-                event_obj = MessageCoder.decode(event_msg)
-                event = self.parse_event(event_obj)
-                self.listener.usrp_event_received(event)
-            except ValueError, e:
-                pass
-        print "Event handler is stopped!"
-
-    def stop_self(self):
-        self.event_queue.put_nowait("QUIT")
-        self.running = False
-
-    def parse_event(self, event_obj):
-        """
-        :rtype : Event
-        :param event_obj: event object to parse
-        :type event_obj: dict
-        """
-        event = None
-
-        if event_obj["type"] == TYPE_CAR_CAR:
-            event = Car_CarEvent()
-            event.set_origin_msg(event_obj)
-            event.self_parse()
-        elif event_obj["type"] == TYPE_MONITOR_CAR:
-            event = Monitor_CarEvent()
-            event.set_origin_msg(event_obj)
-            event.self_parse()
-        elif event_obj["type"] == TYPE_CUSTOMIZED:
-            if self.customized_event:
-                event = Plugin.customized_generate_event()
-                event.set_origin_msg(event_obj)
-                event.self_parse()
-
-        if event:
-            event.source = event_obj['source']
-            event.destination = event_obj['destination']
-            event.type = event_obj['type']
-
-        return event

@@ -11,7 +11,7 @@ from DSRC_Messager_Module.DSRC_Messenger import SocketServer
 
 class DsrcClient(gr.basic_block):
     "This class is client in the inter-process communication."
-    def __init__(self, IP="127.0.0.1", port = 10123):
+    def __init__(self, IP="127.0.0.1", port = 10124):
         gr.basic_block.__init__(self,
             name="Socket Client",
             in_sig=[],
@@ -60,7 +60,7 @@ class DsrcClient(gr.basic_block):
         self.client.stop_self()
 
 class DsrcServer(gr.basic_block):
-    def __init__(self,port = 10123):
+    def __init__(self,port = 10124):
         gr.basic_block.__init__(self,
                 name="Socket Server",
                 in_sig=[],

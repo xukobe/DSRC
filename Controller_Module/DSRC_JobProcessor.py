@@ -175,6 +175,10 @@ class JobProcessor(Thread):
         self.jobCondition.notifyAll()
         self.jobCondition.release()
 
+    def clear_all_jobs(self):
+        self.queue.clear()
+        self.cancel_current_job()
+
     def pause_processor(self, save_state=True):
         """
         Pause the current processor and save the current state

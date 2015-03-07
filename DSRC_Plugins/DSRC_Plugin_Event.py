@@ -3,7 +3,7 @@ __author__ = 'xuepeng'
 from Event_Module import DSRC_Event
 from Event_Module.DSRC_Event import Event
 
-
+# Must implement
 class CustomizedEvent(Event):
     def __init__(self):
         Event.__init__(self)

@@ -7,6 +7,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 import math
 from Event_Module import DSRC_Event, DSRC_Message_Coder
+from Event_Module.DSRC_Message_Coder import MessageCoder
 import DSRC_JobProcessor
 import time
 import thread
@@ -14,7 +15,8 @@ import DSRC_Plugins.DSRC_Plugin_Invoker as Plugin
 import ConfigParser
 import curses
 
-from Event_Module.DSRC_Event import USRPEventHandler, EventListener
+from Event_Module.DSRC_Event import EventListener
+from Event_Module.DSRC_Event_Generator import USRPEventHandler
 from DSRC_Messager_Module.DSRC_USRP_Connector import DsrcUSRPConnector
 from DSRC_JobProcessor import JobProcessor, Job, JobCallback
 from threading import Thread
@@ -39,7 +41,8 @@ ROBOT_RADIUS_SPEED = 90
 
 
 class DSRCUnit(Thread, EventListener, JobCallback):
-    def __init__(self, unit_id, IP="127.0.0.1", socket_port=10123, robot_port="/dev/ttyUSB0", unit_mode=DSRC_UNIT_MODE_FREE,
+    def __init__(self, unit_id, IP="127.0.0.1", socket_port=10124, robot_port="/dev/ttyUSB0",
+                 unit_mode=DSRC_UNIT_MODE_FREE,
                  avoid_collision_mode=False):
         """
         :param unit_id: The ID of the car unit
@@ -141,9 +144,10 @@ class DSRCUnit(Thread, EventListener, JobCallback):
         print "Customized Receiver:" + str(self.flag_plugin_customized_receiver)
         print "Sending car_car message:" + str(self.flag_msg_car_car_send)
         print "Sending customized message:" + str(self.flag_msg_customized_send)
-        print "Initial Mode:" + str(self.unit_mode)
+        if Plugin.plugin_name:
+            print "Plugin:" + str(Plugin.plugin_name)
+        print "Mode:" + str(self.unit_mode)
         print "###################################################################"
-        print "\n"
 
 
     def bg_run(self):
@@ -196,6 +200,18 @@ class DSRCUnit(Thread, EventListener, JobCallback):
                 self.create.reconnect(self.robot_port)
             elif user_input == "setpos":
                 self.setpos()
+            elif user_input == 'set plugin':
+                self.set_plugin()
+            elif user_input == 'enable executor':
+                self.set_executor(True)
+            elif user_input == 'enable receiver':
+                self.set_receiver(True)
+            elif user_input == 'disable executor':
+                self.set_executor(False)
+            elif user_input == 'disable executor':
+                self.set_receiver(False)
+            elif user_input == 'info':
+                self.car_info()
             else:
                 Plugin.customized_cmd(self, user_input)
         print "User interaction thread is stopped!"
@@ -269,6 +285,16 @@ class DSRCUnit(Thread, EventListener, JobCallback):
     def set_unit_mode(self, mode):
         self.unit_mode = mode
 
+    def set_plugin(self):
+        plugin_name = raw_input("Plugin Name:")
+        Plugin.set_plugin(plugin_name)
+
+    def set_executor(self, b):
+        self.flag_plugin_customized_executor = b
+
+    def set_receiver(self, b):
+        self.flag_plugin_customized_receiver = b
+
     def set_avoid_collision(self, isAvoid):
         self.avoid_collision_mode = isAvoid
 
@@ -303,6 +329,11 @@ class DSRCUnit(Thread, EventListener, JobCallback):
             self.job_processor.add_new_job(job2)
         self.job_processor.cancel_current_job()
 
+    def do_accurate_action(self, arg1, arg2):
+        job = Job(self, DSRC_JobProcessor.GO, None, arg1, arg2)
+        self.job_processor.add_new_job(job)
+        self.job_processor.cancel_current_job()
+
     def usrp_event_received(self, event):
         if not event:
             return
@@ -310,20 +341,78 @@ class DSRCUnit(Thread, EventListener, JobCallback):
             return
 
         if event.destination in (DSRC_Event.DESTINATION_ALL, self.unit_id):
-            if self.unit_mode == DSRC_UNIT_MODE_FOLLOW:
-                self._follow_mode_received(event)
-            elif self.unit_mode == DSRC_UNIT_MODE_LEAD:
-                self._lead_mode_received(event)
-            elif self.unit_mode == DSRC_UNIT_MODE_CUSTOMIZED:
-                self._customized_mode_received(event)
+            if event.type == DSRC_Event.TYPE_MONITOR_CAR:
+                if event.sub_type == DSRC_Event.SUBTYPE_SETTING:
+                    if event.setting.name == 'mini_interval':
+                        self.dsrc_thread_update_interval = event.setting.value
+                    elif event.setting.name == DSRC_Event.SETTINGS_NAME_STYLE:
+                        value = event.setting.value
+                        if value == DSRC_Event.SETTINGS_NAME_STYLE_LEAD:
+                            self.unit_mode = DSRC_UNIT_MODE_LEAD
+                        elif value == DSRC_Event.SETTINGS_NAME_STYLE_FOLLOW:
+                            self.unit_mode = DSRC_UNIT_MODE_FOLLOW
+                        elif value == DSRC_Event.SETTINGS_NAME_STYLE_FREE:
+                            self.unit_mode = DSRC_UNIT_MODE_FREE
+                elif event.sub_type == DSRC_Event.SUBTYPE_CMD:
+                    if event.command.name == DSRC_Event.COMMAND_NAME_SAFE_MODE:
+                        if self.create:
+                            self.create.toSafeMode()
+                    elif event.command.name == DSRC_Event.COMMAND_NAME_FULL_MODE:
+                        if self.create:
+                            self.create.toSafeMode()
+                    elif event.command.name == DSRC_Event.COMMAND_NAME_STOP:
+                        self.job_processor.clear_all_jobs()
+                    elif event.command.name == DSRC_Event.COMMAND_NAME_GO:
+                        args = event.command.args
+                        self.do_accurate_action(args[0], args[1])
+                    elif event.command.name == DSRC_Event.COMMAND_NAME_GO_TO:
+                        args = event.command.args
+                        self.job_processor.clear_all_jobs()
+                        jobs = self.position_tracker.jobs_to_go(args[0], args[1])
+                        job1_args = jobs['job1']
+                        job2_args = jobs['job2']
+                        job1 = Job(self, DSRC_JobProcessor.GO, job1_args[2], job1_args[0], job1_args[1])
+                        job2 = Job(self, DSRC_JobProcessor.GO, job2_args[2], job2_args[0], job2_args[1])
+                        self.job_processor.add_new_job(job1)
+                        self.job_processor.add_new_job(job2)
+                    elif event.command.name == DSRC_Event.COMMAND_NAME_PLUGIN:
+                        args = event.command.args
+                        plugin_name = args[0]
+                        Plugin.set_plugin(plugin_name)
+                        self.set_executor(True)
+                        self.set_receiver(True)
+                    elif event.command.name == DSRC_Event.COMMAND_NAME_DISABLE_PLUGIN:
+                        self.set_executor(False)
+                        self.set_receiver(False)
+                    elif event.command.name == DSRC_Event.COMMAND_NAME_ASK_PLUGIN:
+                        for plugin_key in Plugin.plugins:
+                            self.send_plugin_to_monitor(plugin_key)
+                            time.sleep(0.05)
+                elif event.sub_type == DSRC_Event.SUBTYPE_BATCH:
+                    event_job = event.batch.job
+                    job = Job(self, event_job.action.name, event_job.time, event_job.action.arg1, event_job.action.arg2)
+                    self.job_processor.add_new_job(job)
+            else:
+                if self.unit_mode == DSRC_UNIT_MODE_FOLLOW:
+                    self._follow_mode_received(event)
+                elif self.unit_mode == DSRC_UNIT_MODE_LEAD:
+                    self._lead_mode_received(event)
+                elif self.unit_mode == DSRC_UNIT_MODE_CUSTOMIZED:
+                    self._customized_mode_received(event)
+
+    def send_plugin_to_monitor(self, plugin):
+        args = [plugin]
+        msg = MessageCoder.generate_command_message(self.unit_id,
+                                                    'monitor',
+                                                    DSRC_Event.COMMAND_NAME_RESPONSE_PLUGIN,
+                                                    args)
+        self.USRP_connect.send_to_USRP(msg)
 
     def _follow_mode_received(self, event):
         if event.type == DSRC_Event.TYPE_CAR_CAR:
             action = event.action
-            new_job = Job(jobCallback=self, action=action.name, arg1=action.arg1, arg2=action.arg2, time=0)
+            new_job = Job(jobCallback=self, action=action.name, arg1=action.arg1, arg2=action.arg2, arg_time=0)
             self.job_processor.add_new_job(new_job)
-        elif event.type == DSRC_Event.TYPE_MONITOR_CAR:
-            print "Follow mode - Monitor_car"
 
     def _lead_mode_received(self, event):
         if event.type == DSRC_Event.TYPE_MONITOR_CAR:
@@ -482,6 +571,40 @@ class DSRCPositionTracker:
             self.x = self._x = x
             self.y = self._y = y
             self.radian = self._radian =radian
+
+    def jobs_to_go(self, x, y):
+        dx = x - self.x
+        dy = y - self.y
+        d2 = dx*dx + dy*dy
+        if d2:
+            radian = math.asin(float(dy)/math.sqrt(d2))
+            if dx < 0:
+                radian = math.pi - radian
+            radian = radian % ( 2 * math.pi)
+            d_radian = radian - self.radian
+            if d_radian >= 0:
+                if d_radian > math.pi:
+                    d_radian = (2 * math.pi) - d_radian
+                    a_speed = -45
+                    a_time = d_radian / (math.pi/4)
+                else:
+                    a_speed = 45
+                    a_time = d_radian / (math.pi/4)
+            else:
+                if d_radian < -math.pi:
+                    d_radian = (2 * math.pi) + d_radian
+                    a_speed = 45
+                    a_time = d_radian / (math.pi/4)
+                else:
+                    a_speed = -45
+                    a_time = abs(d_radian) / (math.pi/4)
+            job_rotate = [0, a_speed, a_time]
+            distance = math.sqrt(d2)
+            d_time = distance / ROBOT_REGULAR_SPEED
+            job_go = [ROBOT_REGULAR_SPEED, 0, d_time]
+            jobs = {'job1': job_rotate, 'job2': job_go}
+            return jobs
+        return None
 
     # def stop_self(self):
     #     self.running = False

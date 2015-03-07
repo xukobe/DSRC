@@ -17,7 +17,7 @@ class DsrcUSRPConnector:
     """
     Connector between USRP and controller
     """
-    def __init__(self, ip="127.0.0.1", port=10123, callbackInterface=None):
+    def __init__(self, ip="127.0.0.1", port=10124, callbackInterface=None):
         """
         :param ip: IP to connect
         :param port: Port for server socket
