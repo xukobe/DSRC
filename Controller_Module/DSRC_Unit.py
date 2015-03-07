@@ -15,6 +15,7 @@ import DSRC_Plugins.DSRC_Plugin_Invoker as Plugin
 import ConfigParser
 import curses
 
+from iRobot_Module.create import Create
 from Event_Module.DSRC_Event import EventListener
 from Event_Module.DSRC_Event_Generator import USRPEventHandler
 from DSRC_Messager_Module.DSRC_USRP_Connector import DsrcUSRPConnector
