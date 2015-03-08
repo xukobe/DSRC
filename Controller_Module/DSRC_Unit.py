@@ -354,6 +354,8 @@ class DSRCUnit(Thread, EventListener, JobCallback):
                             self.unit_mode = DSRC_UNIT_MODE_FOLLOW
                         elif value == DSRC_Event.SETTINGS_NAME_STYLE_FREE:
                             self.unit_mode = DSRC_UNIT_MODE_FREE
+                        elif value == DSRC_Event.SETTINGS_NAME_STYLE_CUSTOMIZED:
+                            self.unit_mode = DSRC_UNIT_MODE_CUSTOMIZED
                 elif event.sub_type == DSRC_Event.SUBTYPE_CMD:
                     if event.command.name == DSRC_Event.COMMAND_NAME_SAFE_MODE:
                         if self.create:

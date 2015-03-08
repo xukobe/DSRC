@@ -11,7 +11,7 @@ Plugin.load_plugin()
 
 
 from DSRC_Messager_Module.DSRC_USRP_Connector import DsrcUSRPConnector
-from Event_Module.DSRC_Event import USRPEventHandler
+from Event_Module.DSRC_Event_Generator import USRPEventHandler
 from DSRC_Messager_Module.DSRC_Messenger import SocketClient
 from Event_Module.DSRC_Message_Coder import MessageCoder
 from Event_Module import DSRC_Event

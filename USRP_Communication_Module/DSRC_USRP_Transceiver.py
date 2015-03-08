@@ -35,7 +35,7 @@ class WifiTransceiver(gr.top_block):
         # Variables
         ##################################################
         self.tx_gain = tx_gain = 90
-        self.samp_rate = samp_rate = 10e6
+        self.samp_rate = samp_rate = 2*10e5
         self.rx_gain = rx_gain = 50
         self.mult = mult = 0.38
         self.lo_offset = lo_offset = 0
@@ -89,17 +89,17 @@ class WifiTransceiver(gr.top_block):
         ##################################################
         # Connections
         ##################################################
-        self.msg_connect((self.transmitter,'received out'),(self.ieee802_11_ofdm_mac_0, 'app in'))
+        self.msg_connect(self.transmitter,'received out',self.ieee802_11_ofdm_mac_0, 'app in')
         #self.msg_connect((self.transmitter,'received out'), (self.blocks_message_strobe_0, 'set_msg'))
         #self.msg_connect((self.blocks_message_strobe_0, 'strobe'), (self.ieee802_11_ofdm_mac_0, 'app in'))
-        self.msg_connect((self.ieee802_11_ofdm_mac_0, 'app out'),(self.transmitter,'send in'))
+        self.msg_connect(self.ieee802_11_ofdm_mac_0, 'app out',self.transmitter,'send in')
         #self.msg_connect((self.ieee802_11_ofdm_mac_0, 'app out'),(self.message_collector, 'message_stream in'))
         #self.msg_connect((self.message_collector,'message_to_collect out'),(self.transmitter,'send in'))
-        self.msg_connect((self.ieee802_11_ofdm_mac_0, 'phy out'), (self.foo_wireshark_connector_0, 'in'))    
-        self.msg_connect((self.ieee802_11_ofdm_mac_0, 'phy out'), (self.wifi_phy_hier_0, 'mac_in'))    
-        self.msg_connect((self.wifi_phy_hier_0, 'mac_out'), (self.foo_wireshark_connector_0, 'in'))    
-        self.msg_connect((self.wifi_phy_hier_0, 'mac_out'), (self.ieee802_11_ofdm_mac_0, 'phy in'))    
-        self.msg_connect((self.wifi_phy_hier_0, 'mac_out'), (self.ieee802_11_ofdm_parse_mac_0, 'in'))    
+        self.msg_connect(self.ieee802_11_ofdm_mac_0, 'phy out', self.foo_wireshark_connector_0, 'in')
+        self.msg_connect(self.ieee802_11_ofdm_mac_0, 'phy out', self.wifi_phy_hier_0, 'mac_in')
+        self.msg_connect(self.wifi_phy_hier_0, 'mac_out', self.foo_wireshark_connector_0, 'in')
+        self.msg_connect(self.wifi_phy_hier_0, 'mac_out', self.ieee802_11_ofdm_mac_0, 'phy in')
+        self.msg_connect(self.wifi_phy_hier_0, 'mac_out', self.ieee802_11_ofdm_parse_mac_0, 'in')
         self.connect((self.blocks_multiply_const_vxx_0, 0), (self.foo_packet_pad2_0, 0))    
         self.connect((self.foo_packet_pad2_0, 0), (self.uhd_usrp_sink_0, 0))    
         self.connect((self.foo_wireshark_connector_0, 0), (self.blocks_file_sink_0, 0))    
