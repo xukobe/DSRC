@@ -73,6 +73,9 @@ class DSRCUnit(Thread, EventListener, JobCallback):
         self.customized_time_intervals = 0
         self.dsrc_thread_update_interval = 0.05
 
+        # for follow mode:
+        self.target = None
+
         try:
             self.load_ini()
             self.load_plugin()
@@ -148,6 +151,8 @@ class DSRCUnit(Thread, EventListener, JobCallback):
         if Plugin.plugin_name:
             print "Plugin:" + str(Plugin.plugin_name)
         print "Mode:" + str(self.unit_mode)
+        if self.unit_mode == DSRC_UNIT_MODE_FOLLOW:
+            print "Follow target:" + str(self.target)
         print "###################################################################"
 
 
@@ -391,6 +396,17 @@ class DSRCUnit(Thread, EventListener, JobCallback):
                         for plugin_key in Plugin.plugins:
                             self.send_plugin_to_monitor(plugin_key)
                             time.sleep(0.05)
+                    elif event.command.name == DSRC_Event.COMMAND_NAME_FOLLOW:
+                        args = event.command.args
+                        target = args[0]
+                        self.target = target
+                    elif event.command.name == DSRC_Event.COMMAND_NAME_SET_POS:
+                        args = event.command.args
+                        x = args[0]
+                        y = args[1]
+                        radian = args[2]
+                        self.position_tracker.set_pos(x, y, radian)
+
                 elif event.sub_type == DSRC_Event.SUBTYPE_BATCH:
                     event_job = event.batch.job
                     job = Job(self, event_job.action.name, event_job.time, event_job.action.arg1, event_job.action.arg2)
@@ -413,9 +429,10 @@ class DSRCUnit(Thread, EventListener, JobCallback):
 
     def _follow_mode_received(self, event):
         if event.type == DSRC_Event.TYPE_CAR_CAR:
-            action = event.action
-            new_job = Job(jobCallback=self, action=action.name, arg1=action.arg1, arg2=action.arg2, arg_time=0)
-            self.job_processor.add_new_job(new_job)
+            if event.source == self.target:
+                action = event.action
+                new_job = Job(jobCallback=self, action=action.name, arg1=action.arg1, arg2=action.arg2, arg_time=0)
+                self.job_processor.add_new_job(new_job)
 
     def _lead_mode_received(self, event):
         if event.type == DSRC_Event.TYPE_MONITOR_CAR:
@@ -423,16 +440,19 @@ class DSRCUnit(Thread, EventListener, JobCallback):
 
     def _customized_mode_received(self, event):
         if self.flag_plugin_customized_receiver:
+            print "Customized mode receiver invoked"
             Plugin.customized_event_handler(self, event)
 
     def irobot_event_received(self, event):
         # TODO:
         print "iRobot event functionality is not yet implemented!"
 
+    # job callback
     def job_finished(self, action, arg1, arg2, timeExecuted):
         if action == DSRC_JobProcessor.GO:
             self.position_tracker.update_primary(arg1, arg2, timeExecuted)
 
+    # job callback
     def job_paused(self, action, arg1, arg2, timeExecuted):
         if action == DSRC_JobProcessor.GO:
             self.position_tracker.update_primary(arg1, arg2, timeExecuted)

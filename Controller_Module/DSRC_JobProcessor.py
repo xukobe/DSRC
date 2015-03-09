@@ -160,6 +160,9 @@ class JobProcessor(Thread):
 
             if not self.currentJob or self.currentJob.isFinished():
                 if len(self.queue) == 0:
+                    if self.currentJob:
+                        self.currentJob.arg1 = 0
+                        self.currentJob.arg2 = 0
                     self.pause_processor()
                     continue
                 else:
@@ -218,6 +221,7 @@ class JobProcessor(Thread):
         self.running = False
         self.cancel_current_job()
         self.resume_processor()
+
 
 def main():
     pass

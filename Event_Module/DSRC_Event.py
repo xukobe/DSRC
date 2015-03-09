@@ -33,6 +33,8 @@ COMMAND_NAME_STOP = 'stop'
 COMMAND_NAME_DISABLE_PLUGIN = 'disable_plugin'
 COMMAND_NAME_ASK_PLUGIN = 'ask_plugin'
 COMMAND_NAME_RESPONSE_PLUGIN = 'response_plugin'
+COMMAND_NAME_FOLLOW = 'follow'
+COMMAND_NAME_SET_POS = 'set_pos'
 
 BATCH_FLOW_START = "start"
 BATCH_FLOW_JOB = "job"

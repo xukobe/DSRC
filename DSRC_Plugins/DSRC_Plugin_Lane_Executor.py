@@ -4,7 +4,7 @@ import DSRC_Plugins as Plugin
 from Controller_Module import DSRC_JobProcessor
 from Controller_Module.DSRC_JobProcessor import Job
 
-SEND_INTERVALS = 10
+SEND_INTERVALS = 1
 
 Counter = 0
 
@@ -12,19 +12,25 @@ Lane_sign = False
 
 
 def execute(dsrc_unit):
-    global Lane_sign
-    if Lane_sign:
-        receiver_module = Plugin.get_receiver_module()
-        if receiver_module.stopSign:
-            dsrc_unit.job_processor.pause_processor()
-        elif receiver_module.slowSign:
-            job = Job(dsrc_unit, DSRC_JobProcessor.GO, None, 15, 0)
-            dsrc_unit.job_processor.add_new_job(job)
-            dsrc_unit.job_processor.cancel_current_job()
-        else:
-            job = Job(dsrc_unit, DSRC_JobProcessor.GO, None, 30, 0)
-            dsrc_unit.job_processor.add_new_job(job)
-            dsrc_unit.job_processor.cancel_current_job()
+    receiver_module = Plugin.get_receiver_module()
+    if receiver_module.stopSign:
+        print "Stop"
+        dsrc_unit.job_processor.pause_processor()
+    elif receiver_module.slowSign:
+        print "Slow down"
+        if dsrc_unit.job_processor.currentJob:
+            arg1 = dsrc_unit.job_processor.currentJob.arg1
+            arg2 = dsrc_unit.job_processor.currentJob.arg2
+            time = dsrc_unit.job_processor.currentJob.timeLeft
+            if arg1 > 15:
+                new_time = arg1 * time / 15
+                job = Job(dsrc_unit, DSRC_JobProcessor.GO, new_time, 15, arg2)
+                dsrc_unit.job_processor.insert_new_job(job)
+                dsrc_unit.job_processor.cancel_current_job()
+    else:
+        print "Normal"
+        if dsrc_unit.job_processor.pause:
+            dsrc_unit.job_processor.resume_processor()
     # msg = _generate_customized_message(dsrc_unit.unit_id, DSRC_Event.DESTINATION_ALL)
     # dsrc_unit.USRP_connect.send_to_USRP(msg)
 
