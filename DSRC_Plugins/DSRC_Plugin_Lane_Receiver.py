@@ -32,7 +32,7 @@ def customized_event_handler(dsrc_unit, event):
         p = calculate_collision_point(x1, y1, r1, x2, y2, r2, speed1, speed2)
 
         if not p:
-            print "No collision!"
+            # print "No collision!"
             stopSign = False
             slowSign = False
         else:
@@ -43,17 +43,17 @@ def customized_event_handler(dsrc_unit, event):
             time1_s = calc_time(x1, y1, x, y, 15)
             time2 = calc_time(x2, y2, x, y, speed2)
 
-            print str(x) + ":" + str(y) + ":time_f:" + str(time1_f) + ":time_s:" + str(time1_s) + ":time2:" + str(time2)
+            # print str(x) + ":" + str(y) + ":time_f:" + str(time1_f) + ":time_s:" + str(time1_s) + ":time2:" + str(time2)
 
-            if abs(time1_s - time2) <= 4:
-                print "Stop sign"
+            if abs(time1_s - time2) <= 3 and time1_s <= 3:
+                # print "Stop sign"
                 stopSign = True
-            elif abs(time1_f - time2) <= 4:
-                print "Slow sign"
+            elif abs(time1_f - time2) <= 3 and time1_f <= 3:
+                # print "Slow sign"
                 stopSign = False
                 slowSign = True
             else:
-                print "No sign"
+                # print "No sign"
                 stopSign = False
                 slowSign = False
 
@@ -67,11 +67,11 @@ def calculate_collision_point(x1, y1, r1, x2, y2, r2, speed1, speed2):
     a2 = math.tan(r2)
     b2 = y2 - a2*x2
 
-    print "a1, a2: " + str(a1) + "," + str(a2)
-    print "b1, b2: " + str(b1) + "," + str(b2)
+    # print "a1, a2: " + str(a1) + "," + str(a2)
+    # print "b1, b2: " + str(b1) + "," + str(b2)
 
     if abs(a1-a2) < 0.01:
-        print "a1 == a2"
+        # print "a1 == a2"
         same_direction = False
         if math.pi/6*5 < ((r1 - r2) % math.pi) < math.pi/6*7:
             if speed1 * speed2 < 0:
@@ -90,32 +90,41 @@ def calculate_collision_point(x1, y1, r1, x2, y2, r2, speed1, speed2):
                 y = time_to_catch_up*speed1*math.sin(r1) + y1
                 return x, y
         else:
-            print "Opposite direction"
+            # print "Opposite direction"
             # Do something, there is a possibility to have a face to face collision
             return None
     else:
-        print "a1 != a2"
+        # print "a1 != a2"
         x = (b2-b1)/(a1-a2)
         y = a1*x + b1
+        # print str(x) + ":" + str(y)
 
+        # This part is use to calculate if the intersection is at the front of the car of back of the car
         dx1 = x - x1
         dy1 = y - y1
         d21 = dx1*dx1 + dy1*dy1
         cos1 = math.acos(dx1/math.sqrt(d21))
+        if dy1 < 0:
+            cos1 = 2*math.pi - cos1
 
         dx2 = x - x2
         dy2 = y - y2
         d22 = dx2*dx2 + dy2*dy2
         cos2 = math.acos(dx2/math.sqrt(d22))
+        if dy2 < 0:
+            cos2 = 2*math.pi - cos2
 
-        print "r, cos:" + str(r1) + ", " + str(cos1) + ":" + str(r2) + ", " + str(cos2)
+        # print "r, cos:" + str(r1) + ", " + str(cos1) + ":" + str(r2) + ", " + str(cos2)
 
         if abs(cos1 - r1) < 0.5 and abs(cos2 - r2) < 0.5:
+            # print "Case1"
             if speed1 < 0 or speed2 < 0:
+                # print "Speed1 or Speed2 < 0"
                 return None
-            print str(x) + "," + str(y)
+            # print str(x) + "," + str(y)
             return x, y
         elif abs(cos1 - r1) < 0.5 and abs(cos2 - r2) > 0.5:
+            # print "Case2"
             distance2 = math.sqrt(d22)
             if distance2 < CarSize:
                 if speed1 < 0 or speed2 < 0:

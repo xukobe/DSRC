@@ -76,6 +76,11 @@ class Job:
         # elif self.action == FORWARD:
         #     self.robot.go(REGULAR_SPEED, 0)
 
+    def get_current_left_time(self):
+        current_time = time.time()
+        time_left = self.timeLeft - (current_time - self.currentJobStartTime)
+        return time_left
+
     def _do_job(self, robot):
         # print self.action + ":" + str(self.arg1) + ":" + str(self.arg2)
         if robot:

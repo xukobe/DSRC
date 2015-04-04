@@ -429,10 +429,16 @@ class DSRCUnit(Thread, EventListener, JobCallback):
 
     def _follow_mode_received(self, event):
         if event.type == DSRC_Event.TYPE_CAR_CAR:
-            if event.source == self.target:
-                action = event.action
-                new_job = Job(jobCallback=self, action=action.name, arg1=action.arg1, arg2=action.arg2, arg_time=0)
-                self.job_processor.add_new_job(new_job)
+            print "Follow: " + str(event.source) + ":" + str(self.target)
+            if self.target:
+                print self.target + " is not None."
+                if event.source == self.target:
+                    print "event source == self.target"
+                    action = event.action
+                    print str(action.name) + ":" + str(action.arg1) + str(action.arg2)
+                    new_job = Job(jobCallback=self, action=action.name, arg1=action.arg1, arg2=action.arg2, arg_time=None)
+                    self.job_processor.add_new_job(new_job)
+                    self.job_processor.cancel_current_job()
 
     def _lead_mode_received(self, event):
         if event.type == DSRC_Event.TYPE_MONITOR_CAR:
@@ -440,7 +446,7 @@ class DSRCUnit(Thread, EventListener, JobCallback):
 
     def _customized_mode_received(self, event):
         if self.flag_plugin_customized_receiver:
-            print "Customized mode receiver invoked"
+            # print "Customized mode receiver invoked"
             Plugin.customized_event_handler(self, event)
 
     def irobot_event_received(self, event):
