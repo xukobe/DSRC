@@ -35,8 +35,7 @@ class MessageCoder:
         msg_obj_car['action'] = msg_obj_action
         msg_obj_car['coor'] = msg_obj_coor
         msg_obj['car_car'] = msg_obj_car
-        msg = MessageCoder.encode(msg_obj)
-        return msg
+        return msg_obj
 
     @staticmethod
     def generate_setting_message(source, destination, setting_name, value):
@@ -51,8 +50,7 @@ class MessageCoder:
         msg_obj_setting['value'] = value
         msg_obj_monitor_car['setting'] = msg_obj_setting
         msg_obj['monitor_car'] = msg_obj_monitor_car
-        msg = MessageCoder.encode(msg_obj)
-        return msg
+        return msg_obj
 
     @staticmethod
     def generate_command_message(source, destination, cmd, args):
@@ -67,8 +65,7 @@ class MessageCoder:
         msg_obj_cmd['args'] = args
         msg_obj_monitor_car['cmd'] = msg_obj_cmd
         msg_obj['monitor_car'] = msg_obj_monitor_car
-        msg = MessageCoder.encode(msg_obj)
-        return msg
+        return msg_obj
 
     @staticmethod
     def generate_batch_processing(source, destination, job):
@@ -89,8 +86,18 @@ class MessageCoder:
         msg_obj_batch['job'] = msg_obj_job
         msg_obj_monitor_car['batch'] = msg_obj_batch
         msg_obj['monitor_car'] = msg_obj_monitor_car
-        msg = MessageCoder.encode(msg_obj)
-        return msg
+        return msg_obj
+
+    @staticmethod
+    def generate_monitor_car_ack(source, destination, seq):
+        msg_obj = {}
+        msg_obj['source'] = source
+        msg_obj['destination'] = destination
+        msg_obj['type'] = DSRC_Event.TYPE_MONITOR_CAR
+        msg_obj['subtype'] = DSRC_Event.SUBTYPE_ACK
+        msg_obj['seq'] = seq
+        msg_obj['monitor_car'] = {}
+        return msg_obj
 
 def main():
     obj = {}

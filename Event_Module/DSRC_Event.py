@@ -13,6 +13,7 @@ TYPE_CUSTOMIZED = "customized"
 SUBTYPE_SETTING = "setting"
 SUBTYPE_BATCH = "batch"
 SUBTYPE_CMD = "cmd"
+SUBTYPE_ACK = "ack"
 
 ################Monitor_Car##################
 SETTINGS_NAME_STYLE = "style"
@@ -172,6 +173,7 @@ class EventBatch:
 class Monitor_CarEvent(Event):
     def __init__(self):
         Event.__init__(self)
+        self.seq = None
         self.sub_type = None
         self.setting = None
         self.command = None
@@ -179,7 +181,9 @@ class Monitor_CarEvent(Event):
 
     def self_parse(self):
         if self.msg_obj:
+            # print self.msg_obj
             monitor_car_obj = self.msg_obj[TYPE_MONITOR_CAR]
+            self.seq = self.msg_obj['seq']
             self.sub_type = self.msg_obj['subtype']
             if self.sub_type == SUBTYPE_SETTING:
                 setting_obj = monitor_car_obj['setting']
@@ -193,6 +197,8 @@ class Monitor_CarEvent(Event):
                 action_obj = job_obj['action']
                 time = job_obj['time']
                 self.batch = EventBatch(action_obj['name'], action_obj['arg1'], action_obj['arg2'], time)
+            elif self.sub_type == SUBTYPE_ACK:
+                self.seq = self.msg_obj['seq']
 
 
 class EventGenerator:

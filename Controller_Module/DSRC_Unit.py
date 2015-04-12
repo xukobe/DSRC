@@ -175,7 +175,8 @@ class DSRCUnit(Thread, EventListener, JobCallback):
                                                                                self.position_tracker.x,
                                                                                self.position_tracker.y,
                                                                                self.position_tracker.radian)
-                self.USRP_connect.send_to_USRP(msg)
+                self.send_to_USRP(msg)
+                # self.USRP_connect.send_to_USRP(msg)
 
             # Send customized message
             if self.flag_plugin_customized_executor:
@@ -340,6 +341,10 @@ class DSRCUnit(Thread, EventListener, JobCallback):
         self.job_processor.add_new_job(job)
         self.job_processor.cancel_current_job()
 
+    def send_to_USRP(self, msg_obj):
+        msg = MessageCoder.encode(msg_obj)
+        self.USRP_connect.send_to_USRP(msg)
+
     def usrp_event_received(self, event):
         if not event:
             return
@@ -348,6 +353,7 @@ class DSRCUnit(Thread, EventListener, JobCallback):
 
         if event.destination in (DSRC_Event.DESTINATION_ALL, self.unit_id):
             if event.type == DSRC_Event.TYPE_MONITOR_CAR:
+                self.send_ack(event.seq)
                 if event.sub_type == DSRC_Event.SUBTYPE_SETTING:
                     if event.setting.name == 'mini_interval':
                         self.dsrc_thread_update_interval = event.setting.value
@@ -419,13 +425,19 @@ class DSRCUnit(Thread, EventListener, JobCallback):
                 elif self.unit_mode == DSRC_UNIT_MODE_CUSTOMIZED:
                     self._customized_mode_received(event)
 
+    def send_ack(self, seq):
+        msg = MessageCoder.generate_monitor_car_ack(self.unit_id,
+                                                    'monitor',
+                                                    (seq+1))
+        self.send_to_USRP(msg)
+
     def send_plugin_to_monitor(self, plugin):
         args = [plugin]
         msg = MessageCoder.generate_command_message(self.unit_id,
                                                     'monitor',
                                                     DSRC_Event.COMMAND_NAME_RESPONSE_PLUGIN,
                                                     args)
-        self.USRP_connect.send_to_USRP(msg)
+        self.send_to_USRP(msg)
 
     def _follow_mode_received(self, event):
         if event.type == DSRC_Event.TYPE_CAR_CAR:
@@ -637,6 +649,24 @@ class DSRCPositionTracker:
 
     # def stop_self(self):
     #     self.running = False
+
+# class MonitorCarEventHandler:
+#     def __init__(self, dsrc_unit, sender):
+#         self.unit = dsrc_unit
+#         self.sender = sender
+#         self.queue_size = 10
+#         self.queue = []
+#
+#     def handle_event(self, event):
+#         seq = event.seq
+#         self._send_ack(seq+1)
+#         # if seq in self.queue:
+#
+#     def _send_ack(self, seq):
+#         msg = MessageCoder.generate_monitor_car_ack(self.unit.unit_id,
+#                                                     'monitor',
+#                                                     seq)
+#         self.USRP_connect.send_to_USRP(msg)
 
 
 def test_position():
