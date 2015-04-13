@@ -18,7 +18,7 @@ class MessageCoder:
         return msg
 
     @staticmethod
-    def generate_car_car_message(source, destination, action_name, action_arg1, action_arg2, coor_x, coor_y, coor_radian):
+    def generate_car_car_message(source, destination, action_name, action_arg1, action_arg2, coor_x, coor_y, coor_radian, power, rate, interval, bump, drop):
         msg_obj = {}
         msg_obj['source'] = source
         msg_obj['destination'] = destination
@@ -35,6 +35,11 @@ class MessageCoder:
         msg_obj_car['action'] = msg_obj_action
         msg_obj_car['coor'] = msg_obj_coor
         msg_obj['car_car'] = msg_obj_car
+        msg_obj['power'] = power
+        msg_obj['rate'] = rate
+        msg_obj['interval'] = interval
+        msg_obj['bump'] = bump
+        msg_obj['drop'] = drop
         return msg_obj
 
     @staticmethod

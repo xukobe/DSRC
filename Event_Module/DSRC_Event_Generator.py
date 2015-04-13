@@ -7,6 +7,8 @@ import DSRC_Plugins.DSRC_Plugin_Invoker as Plugin
 from DSRC_Messager_Module.DSRC_USRP_Connector import ConnectorInterface
 from DSRC_Event import *
 from DSRC_Message_Coder import *
+import TransceiverSettings as TS
+
 
 class USRPEventHandler(Thread, EventGenerator, ConnectorInterface):
     def __init__(self, customized_event=False):
@@ -44,6 +46,11 @@ class USRPEventHandler(Thread, EventGenerator, ConnectorInterface):
         :type event_obj: dict
         """
         event = None
+
+        # USRP event
+        if event_obj[TS.TYPE_KEY] == TS.TYPE_VALUE:
+            event = TS.USRPEvent(event_obj[TS.SETTINGS_POWER], event_obj[TS.SETTINGS_RATE])
+            return event
 
         if event_obj["type"] == TYPE_CAR_CAR:
             event = Car_CarEvent()

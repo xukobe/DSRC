@@ -21,6 +21,7 @@ from wifi_phy_hier import wifi_phy_hier
 from DSRC_Messenger_Blocks import DsrcServer
 from dsrc_message_generator import message_generator
 from dsrc_message_collector import message_collector
+from TransceiverController import Controller
 import foo
 import ieee802_11
 import pmt
@@ -82,7 +83,8 @@ class WifiTransceiver(gr.top_block):
         self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_char*1, "/tmp/ofdm.pcap", True)
         self.blocks_file_sink_0.set_unbuffered(True)
         #Add  by Xuepeng Xu
-        self.transmitter = DsrcServer()
+        self.controller = Controller(self)
+        self.transmitter = DsrcServer(controller=self.controller)
         #self.message_generator = message_generator()
         #self.message_collector = message_collector()
 
@@ -105,6 +107,8 @@ class WifiTransceiver(gr.top_block):
         self.connect((self.foo_wireshark_connector_0, 0), (self.blocks_file_sink_0, 0))    
         self.connect((self.uhd_usrp_source_0, 0), (self.wifi_phy_hier_0, 0))    
         self.connect((self.wifi_phy_hier_0, 0), (self.blocks_multiply_const_vxx_0, 0))    
+
+        self.controller.start()
 
 
     def get_tx_gain(self):
@@ -157,6 +161,7 @@ class WifiTransceiver(gr.top_block):
 
     def set_encoding(self, encoding):
         self.encoding = encoding
+        self.wifi_phy_hier_0.set_encoding(encoding)
 
 if __name__ == '__main__':
     parser = OptionParser(option_class=eng_option, usage="%prog: [options]")
@@ -168,5 +173,6 @@ if __name__ == '__main__':
     except EOFError:
         pass
     tb.stop()
+    tb.controller.stop_self()
     tb.transmitter.stop_self()
     exit()

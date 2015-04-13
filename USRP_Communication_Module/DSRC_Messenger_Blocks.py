@@ -5,6 +5,8 @@ __author__ = 'xuepeng'
 import string
 import numpy
 import pmt
+import json
+import TransceiverController as TC
 from gnuradio import gr
 from DSRC_Messager_Module.DSRC_Messenger import SocketClient
 from DSRC_Messager_Module.DSRC_Messenger import SocketServer
@@ -50,8 +52,11 @@ class DsrcClient(gr.basic_block):
         #msg_str = pmt.symbol_to_string(msg_pmt)
         # Here I just cut the string from the 24th character. the previous 24 chars are the header
         msg_cutted = msg_str[24:]
+        self.send_to_client(msg_cutted)
+
+    def send_to_client(self, msg):
         try:
-            self.client.send(msg_cutted)
+            self.client.send(msg)
         except Exception,e:
             print "Connection is down! Exiting!"
             exit()
@@ -60,12 +65,13 @@ class DsrcClient(gr.basic_block):
         self.client.stop_self()
 
 class DsrcServer(gr.basic_block):
-    def __init__(self,port = 10124):
+    def __init__(self, port=10124, controller=None):
         gr.basic_block.__init__(self,
                 name="Socket Server",
                 in_sig=[],
                 out_sig=[])
         self.port = port
+        self.controller = controller
         self.server = SocketServer(self._connected_callback,self.port)
         self.client = []
         self.message_port_register_out(pmt.intern('received out'))
@@ -87,6 +93,14 @@ class DsrcServer(gr.basic_block):
         # for i in range(len(rev_msg)):
         #     pmt.u8vector_set(send_pmt, i, ord(rev_msg[i]))
         # self.message_port_pub(pmt.intern('received out'), pmt.cons(pmt.PMT_NIL, send_pmt))
+        try:
+            json_obj = json.loads(msg)
+            if json_obj[TC.TYPE_KEY] == TC.TYPE_VALUE:
+                self.controller.change_setting(json_obj)
+                return
+        except Exception, e:
+            pass
+
         self.message_port_pub(pmt.intern('received out'), pmt.string_to_symbol(msg))
         # print msg
 
@@ -100,9 +114,14 @@ class DsrcServer(gr.basic_block):
         #msg_str = pmt.symbol_to_string(msg_pmt)
         msg_cutted = msg_str[24:]
         # print "Server: Handle MSG: "+msg_cutted
+        # Change setting of the transceiver
+
+        self.send_to_clients(msg_cutted)
+
+    def send_to_clients(self, msg):
         for i in range(len(self.client)):
             try:
-                self.client[i].send(msg_cutted)
+                self.client[i].send(msg)
             except Exception, e:
                 self.client.remove(self.client[i])
 

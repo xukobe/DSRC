@@ -123,6 +123,11 @@ class Car_CarEvent(Event):
         Event.__init__(self)
         self.action = None
         self.coordinates = None
+        self.power = None
+        self.rate = None
+        self.interval = None
+        self.bump = None
+        self.drop = None
 
     def set_action(self, action):
         """
@@ -151,6 +156,11 @@ class Car_CarEvent(Event):
             coor.set_radian(coor_event['radian'])
             self.set_action(action)
             self.set_coor(coor)
+            self.power = self.msg_obj['power']
+            self.rate = self.msg_obj['rate']
+            self.interval = self.msg_obj['interval']
+            self.bump = self.msg_obj['bump']
+            self.drop = self.msg_obj['drop']
 
 
 class EventSetting:

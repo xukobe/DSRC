@@ -16,12 +16,16 @@ import ConfigParser
 import curses
 
 from iRobot_Module.create import Create
+from iRobot_Module.create_sensors import SensorCallback, CreateSensorDetector
+import iRobot_Module.create_sensors as Create_Sensor
 from Event_Module.DSRC_Event import EventListener
 from Event_Module.DSRC_Event_Generator import USRPEventHandler
 from DSRC_Messager_Module.DSRC_USRP_Connector import DsrcUSRPConnector
 from DSRC_JobProcessor import JobProcessor, Job, JobCallback
 from threading import Thread
 
+from Event_Module.TransceiverSettings import TransceiverSetting
+import Event_Module.TransceiverSettings as TS
 
 DSRC_UNIT_MODE_LEAD = 1
 DSRC_UNIT_MODE_FOLLOW = 2
@@ -41,7 +45,7 @@ ROBOT_FAST_SPEED = 35
 ROBOT_RADIUS_SPEED = 90
 
 
-class DSRCUnit(Thread, EventListener, JobCallback):
+class DSRCUnit(Thread, EventListener, JobCallback, SensorCallback):
     def __init__(self, unit_id, IP="127.0.0.1", socket_port=10124, robot_port="/dev/ttyUSB0",
                  unit_mode=DSRC_UNIT_MODE_FREE,
                  avoid_collision_mode=False):
@@ -76,6 +80,10 @@ class DSRCUnit(Thread, EventListener, JobCallback):
         # for follow mode:
         self.target = None
 
+        # USRP properties
+        self.power = 90
+        self.rate = 0
+
         try:
             self.load_ini()
             self.load_plugin()
@@ -91,9 +99,16 @@ class DSRCUnit(Thread, EventListener, JobCallback):
         self.USRP_connect = DsrcUSRPConnector(self.IP, self.socket_port, self.USRP_event_handler)
         # iRobot
         # self.create = Create(self.robot_port)
-        self.create = None
+        if self.robot_port != "None":
+            self.create = Create(self.robot_port)
+        else:
+            self.create = None
         # A processor to process the robot job in order
         self.job_processor = JobProcessor(self.create)
+
+        self.sensor_detector = CreateSensorDetector(create=self.create, callback=self)
+        self.sensor_detector.start()
+
         self.position_tracker = DSRCPositionTracker(self.job_processor, 0, 0, 0)
         self.bg_thread = DSRCBGThread(self.bg_run)
         self.bg_thread.start()
@@ -174,7 +189,12 @@ class DSRCUnit(Thread, EventListener, JobCallback):
                                                                                action, arg1, arg2,
                                                                                self.position_tracker.x,
                                                                                self.position_tracker.y,
-                                                                               self.position_tracker.radian)
+                                                                               self.position_tracker.radian,
+                                                                               self.power,
+                                                                               self.rate,
+                                                                               self.dsrc_thread_update_interval,
+                                                                               self.sensor_detector.bump,
+                                                                               self.sensor_detector.drop)
                 self.send_to_USRP(msg)
                 # self.USRP_connect.send_to_USRP(msg)
 
@@ -219,6 +239,10 @@ class DSRCUnit(Thread, EventListener, JobCallback):
                 self.set_receiver(False)
             elif user_input == 'info':
                 self.car_info()
+            elif user_input == "setPower":
+                self.setPower()
+            elif user_input == "setRate":
+                self.setRate()
             else:
                 Plugin.customized_cmd(self, user_input)
         print "User interaction thread is stopped!"
@@ -305,6 +329,26 @@ class DSRCUnit(Thread, EventListener, JobCallback):
     def set_avoid_collision(self, isAvoid):
         self.avoid_collision_mode = isAvoid
 
+    def setPower(self):
+        power_str = raw_input("Power:")
+        try:
+            power = int(power_str)
+        except ValueError, e:
+            print "Cannot convert " + power_str + " into a number."
+            return
+        msg = TransceiverSetting.generate_power_setting_msg(power)
+        self.send_to_USRP(msg)
+
+    def setRate(self):
+        rate_str = raw_input("Rate:")
+        try:
+            rate = int(rate_str)
+        except ValueError, e:
+            print "Cannot convert " + rate_str + " into a number."
+            return
+        msg = TransceiverSetting.generate_power_setting_msg(rate)
+        self.send_to_USRP(msg)
+
     # Simple Interface for iRobot Control
     def do_action(self, simple_action):
         if simple_action == ROBOT_PAUSE:
@@ -345,9 +389,25 @@ class DSRCUnit(Thread, EventListener, JobCallback):
         msg = MessageCoder.encode(msg_obj)
         self.USRP_connect.send_to_USRP(msg)
 
+    def sensor_event_handler(self, events):
+        if Create_Sensor.EVENT_WHEEL_DROP in events:
+            self.job_processor.pause_processor()
+            #send wheel drop to monitor
+
+        if Create_Sensor.EVENT_BUMP in events:
+            self.job_processor.pause_processor()
+            #send bump to monitor
+
+
     def usrp_event_received(self, event):
         if not event:
             return
+
+        if event.type == TS.TYPE_VALUE:
+            self.power = event.power
+            self.rate = event.rate
+            return
+
         if event.source == self.unit_id:
             return
 
@@ -479,6 +539,7 @@ class DSRCUnit(Thread, EventListener, JobCallback):
         self.job_processor.stop_processor()
         self.USRP_event_handler.stop_self()
         self.USRP_connect.stop_self()
+        self.sensor_detector.stop_self()
         self.running = False
         exit()
 
