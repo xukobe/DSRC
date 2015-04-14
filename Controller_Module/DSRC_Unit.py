@@ -459,9 +459,10 @@ class DSRCUnit(Thread, EventListener, JobCallback, SensorCallback):
                         self.set_executor(False)
                         self.set_receiver(False)
                     elif event.command.name == DSRC_Event.COMMAND_NAME_ASK_PLUGIN:
-                        for plugin_key in Plugin.plugins:
-                            self.send_plugin_to_monitor(plugin_key)
-                            time.sleep(0.05)
+                        for i in range(0, 5):
+                            for plugin_key in Plugin.plugins:
+                                self.send_plugin_to_monitor(plugin_key)
+                                time.sleep(0.05)
                     elif event.command.name == DSRC_Event.COMMAND_NAME_FOLLOW:
                         args = event.command.args
                         target = args[0]

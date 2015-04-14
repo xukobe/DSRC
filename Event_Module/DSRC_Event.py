@@ -224,9 +224,11 @@ class Monitor_CarEvent(Event):
 
     def self_parse(self):
         if self.msg_obj:
-            # print self.msg_obj
             monitor_car_obj = self.msg_obj[TYPE_MONITOR_CAR]
-            self.seq = self.msg_obj[KEY_SEQUENCE]
+            try:
+                self.seq = self.msg_obj[KEY_SEQUENCE]
+            except Exception, e:
+                pass
             self.sub_type = self.msg_obj[KEY_SUBTYPE]
             if self.sub_type == SUBTYPE_SETTING:
                 setting_obj = monitor_car_obj[KEY_SETTING]
