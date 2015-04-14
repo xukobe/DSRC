@@ -415,7 +415,7 @@ class DSRCUnit(Thread, EventListener, JobCallback, SensorCallback):
             if event.type == DSRC_Event.TYPE_MONITOR_CAR:
                 self.send_ack(event.seq)
                 if event.sub_type == DSRC_Event.SUBTYPE_SETTING:
-                    if event.setting.name == 'mini_interval':
+                    if event.setting.name == DSRC_Event.SETTINGS_NAME_MINI_INTERVAL:
                         self.dsrc_thread_update_interval = event.setting.value
                     elif event.setting.name == DSRC_Event.SETTINGS_NAME_STYLE:
                         value = event.setting.value
