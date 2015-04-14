@@ -5,47 +5,80 @@ __author__ = 'xuepeng'
 DESTINATION_ALL = "all"
 
 ####################Type#####################
-TYPE_MONITOR_CAR = "monitor_car"
-TYPE_CAR_CAR = "car_car"
-TYPE_CUSTOMIZED = "customized"
+TYPE_MONITOR_CAR = "vi"    # v2i
+TYPE_CAR_CAR = "vv"        # v2v
+TYPE_CUSTOMIZED = "ctm"    # customized
 
 ###################SubType####################
-SUBTYPE_SETTING = "setting"
-SUBTYPE_BATCH = "batch"
+SUBTYPE_SETTING = "st"           # setting
+SUBTYPE_BATCH = "bt"          # batch
 SUBTYPE_CMD = "cmd"
 SUBTYPE_ACK = "ack"
 
 ################Monitor_Car##################
-SETTINGS_NAME_STYLE = "style"
-SETTINGS_NAME_STYLE_FOLLOW = "follow"
-SETTINGS_NAME_STYLE_LEAD = "lead"
-SETTINGS_NAME_STYLE_FREE = "free"
-SETTINGS_NAME_STYLE_CUSTOMIZED = "customized"
-SETTINGS_NAME_MINI_INTERVAL = 'mini_interval'
+SETTINGS_NAME_STYLE = "st"               # style
+SETTINGS_NAME_STYLE_FOLLOW = "f"       # follow
+SETTINGS_NAME_STYLE_LEAD = "l"           # lead
+SETTINGS_NAME_STYLE_FREE = "fr"          # free
+SETTINGS_NAME_STYLE_CUSTOMIZED = "ctm"     # customized
+SETTINGS_NAME_MINI_INTERVAL = 'mi'      # minimal interval
 
-COMMAND_NAME_SAFE_MODE = "safe_mode"
-COMMAND_NAME_FULL_MODE = "full_mode"
-COMMAND_NAME_RESTART = "restart"
-COMMAND_NAME_SHUT_DOWN = "shutdown"
+COMMAND_NAME_SAFE_MODE = "sm"          # safe mode
+COMMAND_NAME_FULL_MODE = "fm"          # full mode
+COMMAND_NAME_RESTART = "rst"       # restart
+COMMAND_NAME_SHUT_DOWN = "sd"       # shutdown
 COMMAND_NAME_GO = 'go'
-COMMAND_NAME_GO_TO = 'go_to'
-COMMAND_NAME_PLUGIN = 'plugin'
-COMMAND_NAME_STOP = 'stop'
-COMMAND_NAME_DISABLE_PLUGIN = 'disable_plugin'
-COMMAND_NAME_ASK_PLUGIN = 'ask_plugin'
-COMMAND_NAME_RESPONSE_PLUGIN = 'response_plugin'
-COMMAND_NAME_FOLLOW = 'follow'
-COMMAND_NAME_SET_POS = 'set_pos'
+COMMAND_NAME_GO_TO = 'gt'           # got to
+COMMAND_NAME_PLUGIN = 'p'           # plugin
+COMMAND_NAME_STOP = 'stp'          # stop
+COMMAND_NAME_DISABLE_PLUGIN = 'dp'     # disable plugin
+COMMAND_NAME_ASK_PLUGIN = 'ap'         # ask for plugin
+COMMAND_NAME_RESPONSE_PLUGIN = 'rp'             # response plugin
+COMMAND_NAME_FOLLOW = 'f'                 # follow
+COMMAND_NAME_SET_POS = 'sp'              # set position
 
-BATCH_FLOW_START = "start"
-BATCH_FLOW_JOB = "job"
-BATCH_FLOW_END = "end"
+BATCH_FLOW_START = "st"              # start
+BATCH_FLOW_JOB = "j"                 # job
+BATCH_FLOW_END = "e"                 # end
 BATCH_JOB_ACTION_NAME_GO = "go"
-BATCH_JOB_ACTION_NAME_PAUSE = "pause"
+BATCH_JOB_ACTION_NAME_PAUSE = "p"    #pause
 
 #################Car_Car#####################
 ACTION_NAME_GO = "go"
-ACTION_NAME_PAUSE = "pause"
+ACTION_NAME_PAUSE = "p"              # pause
+
+###############Keys###########################
+KEY_SOURCE = 'sr'                  # source
+KEY_DESTINATION = 'dst'             # destination
+
+KEY_V2V = 'vv'                      # v2v
+KEY_V2I = 'vi'                      # v2i
+
+KEY_TYPE = 'tp'                     # type
+KEY_SUBTYPE = 'stp'                  # subtype
+
+KEY_ACTION = 'a'                    # action
+KEY_COORDINATE = 'c'                # coordinate
+KEY_NAME = 'n'                      # name
+KEY_ARG1 = 'a1'                     # arg1
+KEY_ARG2 = 'a2'                     # arg2
+KEY_X = 'x'
+KEY_Y = 'y'
+KEY_RADIAN = 'r'                    # radian
+KEY_POWER = 'pw'                    # power
+KEY_RATE = 'rt'                     # rate
+KEY_INTERVAL = 'it'                 # interval
+KEY_BUMP = 'b'                      # bump
+KEY_DROP = 'd'                      # drop
+
+KEY_SEQUENCE = 'sq'                 # sequence
+KEY_SETTING = 'st'                  # setting
+KEY_VALUE = 'v'                     # value
+KEY_CMD = 'cmd'                     # command
+KEY_ARGS = 'ag'                     # args
+KEY_BATCH = 'bt'                    # batch
+KEY_JOB = 'j'                       # job
+KEY_TIME = 'tm'                     # time
 
 class EventAction:
     def __init__(self, name=None, arg1=None, arg2=None):
@@ -144,23 +177,23 @@ class Car_CarEvent(Event):
     def self_parse(self):
         if self.msg_obj:
             car_car_obj = self.msg_obj[TYPE_CAR_CAR]
-            action_event = car_car_obj['action']
-            coor_event = car_car_obj['coor']
+            action_event = car_car_obj[KEY_ACTION]
+            coor_event = car_car_obj[KEY_COORDINATE]
             action = EventAction()
             coor = EventCoordinates()
-            action.set_name(action_event['name'])
-            action.set_arg1(action_event['arg1'])
-            action.set_arg2(action_event['arg2'])
-            coor.set_x(coor_event['x'])
-            coor.set_y(coor_event['y'])
-            coor.set_radian(coor_event['radian'])
+            action.set_name(action_event[KEY_NAME])
+            action.set_arg1(action_event[KEY_ARG1])
+            action.set_arg2(action_event[KEY_ARG2])
+            coor.set_x(coor_event[KEY_X])
+            coor.set_y(coor_event[KEY_Y])
+            coor.set_radian(coor_event[KEY_RADIAN])
             self.set_action(action)
             self.set_coor(coor)
-            self.power = self.msg_obj['power']
-            self.rate = self.msg_obj['rate']
-            self.interval = self.msg_obj['interval']
-            self.bump = self.msg_obj['bump']
-            self.drop = self.msg_obj['drop']
+            self.power = self.msg_obj[KEY_POWER]
+            self.rate = self.msg_obj[KEY_RATE]
+            self.interval = self.msg_obj[KEY_INTERVAL]
+            self.bump = self.msg_obj[KEY_BUMP]
+            self.drop = self.msg_obj[KEY_DROP]
 
 
 class EventSetting:
@@ -193,22 +226,22 @@ class Monitor_CarEvent(Event):
         if self.msg_obj:
             # print self.msg_obj
             monitor_car_obj = self.msg_obj[TYPE_MONITOR_CAR]
-            self.seq = self.msg_obj['seq']
-            self.sub_type = self.msg_obj['subtype']
+            self.seq = self.msg_obj[KEY_SEQUENCE]
+            self.sub_type = self.msg_obj[KEY_SUBTYPE]
             if self.sub_type == SUBTYPE_SETTING:
-                setting_obj = monitor_car_obj['setting']
-                self.setting = EventSetting(setting_obj['name'], setting_obj['value'])
+                setting_obj = monitor_car_obj[KEY_SETTING]
+                self.setting = EventSetting(setting_obj[KEY_NAME], setting_obj[KEY_VALUE])
             elif self.sub_type == SUBTYPE_CMD:
-                cmd_obj = monitor_car_obj['cmd']
-                self.command = EventCommand(cmd_obj['name'], cmd_obj['args'])
+                cmd_obj = monitor_car_obj[KEY_CMD]
+                self.command = EventCommand(cmd_obj[KEY_NAME], cmd_obj[KEY_ARGS])
             elif self.sub_type == SUBTYPE_BATCH:
-                batch_obj = monitor_car_obj['batch']
-                job_obj = batch_obj['job']
-                action_obj = job_obj['action']
-                time = job_obj['time']
-                self.batch = EventBatch(action_obj['name'], action_obj['arg1'], action_obj['arg2'], time)
+                batch_obj = monitor_car_obj[KEY_BATCH]
+                job_obj = batch_obj[KEY_JOB]
+                action_obj = job_obj[KEY_ACTION]
+                time = job_obj[KEY_TIME]
+                self.batch = EventBatch(action_obj[KEY_NAME], action_obj[KEY_ARG1], action_obj[KEY_ARG2], time)
             elif self.sub_type == SUBTYPE_ACK:
-                self.seq = self.msg_obj['seq']
+                self.seq = self.msg_obj[KEY_SEQUENCE]
 
 
 class EventGenerator:

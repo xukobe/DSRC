@@ -46,29 +46,31 @@ class USRPEventHandler(Thread, EventGenerator, ConnectorInterface):
         :type event_obj: dict
         """
         event = None
+        try:
+            # USRP event
+            if event_obj[TS.TYPE_KEY] == TS.TYPE_VALUE:
+                event = TS.USRPEvent(event_obj[TS.SETTINGS_POWER], event_obj[TS.SETTINGS_RATE])
+                return event
+        except Exception,e:
+            pass
 
-        # USRP event
-        if event_obj[TS.TYPE_KEY] == TS.TYPE_VALUE:
-            event = TS.USRPEvent(event_obj[TS.SETTINGS_POWER], event_obj[TS.SETTINGS_RATE])
-            return event
-
-        if event_obj["type"] == TYPE_CAR_CAR:
+        if event_obj[KEY_TYPE] == TYPE_CAR_CAR:
             event = Car_CarEvent()
             event.set_origin_msg(event_obj)
             event.self_parse()
-        elif event_obj["type"] == TYPE_MONITOR_CAR:
+        elif event_obj[KEY_TYPE] == TYPE_MONITOR_CAR:
             event = Monitor_CarEvent()
             event.set_origin_msg(event_obj)
             event.self_parse()
-        elif event_obj["type"] == TYPE_CUSTOMIZED:
+        elif event_obj[KEY_TYPE] == TYPE_CUSTOMIZED:
             # if self.customized_event:
             event = Plugin.customized_generate_event()
             event.set_origin_msg(event_obj)
             event.self_parse()
 
         if event:
-            event.source = event_obj['source']
-            event.destination = event_obj['destination']
-            event.type = event_obj['type']
+            event.source = event_obj[KEY_SOURCE]
+            event.destination = event_obj[KEY_DESTINATION]
+            event.type = event_obj[KEY_TYPE]
 
         return event

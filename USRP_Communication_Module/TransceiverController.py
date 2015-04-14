@@ -3,11 +3,7 @@ __author__ = 'xuepeng'
 from threading import Thread
 import json
 import time
-
-TYPE_KEY = 'type'
-TYPE_VALUE = 'transceiver'
-SETTINGS_POWER = 'power'
-SETTINGS_RATE = 'rate'
+import Event_Module.TransceiverSettings as TS
 
 class Controller(Thread):
     def __init__(self, transceiver):
@@ -19,12 +15,12 @@ class Controller(Thread):
         power = None
         rate = None
         try:
-            power = settings[SETTINGS_POWER]
+            power = settings[TS.SETTINGS_POWER]
         except Exception, e:
             pass
 
         try:
-            rate = settings[SETTINGS_RATE]
+            rate = settings[TS.SETTINGS_RATE]
         except Exception, e:
             pass
 
@@ -37,9 +33,9 @@ class Controller(Thread):
     def run(self):
         while self.running:
             msg_obj = {}
-            msg_obj[TYPE_KEY] = TYPE_VALUE
-            msg_obj['power'] = self.transceiver.tx_gain
-            msg_obj['rate'] = self.transceiver.encoding
+            msg_obj[TS.TYPE_KEY] = TS.TYPE_VALUE
+            msg_obj[TS.SETTINGS_POWER] = self.transceiver.tx_gain
+            msg_obj[TS.SETTINGS_RATE] = self.transceiver.encoding
             msg = json.dumps(msg_obj)
             self.transceiver.transmitter.send_to_clients(msg)
             time.sleep(1)
