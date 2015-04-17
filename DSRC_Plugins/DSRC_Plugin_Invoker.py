@@ -27,7 +27,7 @@ def get_event_module():
 
 def get_executor_module():
     global executor_module
-    return event_module
+    return executor_module
 
 
 def get_receiver_module():

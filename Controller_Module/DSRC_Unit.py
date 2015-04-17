@@ -502,13 +502,13 @@ class DSRCUnit(Thread, EventListener, JobCallback, SensorCallback):
 
     def _follow_mode_received(self, event):
         if event.type == DSRC_Event.TYPE_CAR_CAR:
-            print "Follow: " + str(event.source) + ":" + str(self.target)
+            # print "Follow: " + str(event.source) + ":" + str(self.target)
             if self.target:
-                print self.target + " is not None."
+                # print self.target + " is not None."
                 if event.source == self.target:
-                    print "event source == self.target"
+                    # print "event source == self.target"
                     action = event.action
-                    print str(action.name) + ":" + str(action.arg1) + str(action.arg2)
+                    # print str(action.name) + ":" + str(action.arg1) + str(action.arg2)
                     new_job = Job(jobCallback=self, action=action.name, arg1=action.arg1, arg2=action.arg2, arg_time=None)
                     self.job_processor.add_new_job(new_job)
                     self.job_processor.cancel_current_job()
