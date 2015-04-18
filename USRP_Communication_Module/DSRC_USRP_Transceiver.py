@@ -77,6 +77,7 @@ class WifiTransceiver(gr.top_block):
         self.foo_wireshark_connector_0 = foo.wireshark_connector(127, False)
         self.foo_packet_pad2_0 = foo.packet_pad2(False, False, 0.001, 0, 10000)
         (self.foo_packet_pad2_0).set_min_output_buffer(100000)
+        self.blocks_null_sink_0 = blocks.null_sink(gr.sizeof_gr_complex*1)
         self.blocks_multiply_const_vxx_0 = blocks.multiply_const_vcc((mult, ))
         (self.blocks_multiply_const_vxx_0).set_min_output_buffer(100000)
         #self.blocks_message_strobe_0 = blocks.message_strobe(pmt.intern("     Laptop3     "), 100)
@@ -106,7 +107,8 @@ class WifiTransceiver(gr.top_block):
         self.connect((self.foo_packet_pad2_0, 0), (self.uhd_usrp_sink_0, 0))    
         self.connect((self.foo_wireshark_connector_0, 0), (self.blocks_file_sink_0, 0))    
         self.connect((self.uhd_usrp_source_0, 0), (self.wifi_phy_hier_0, 0))    
-        self.connect((self.wifi_phy_hier_0, 0), (self.blocks_multiply_const_vxx_0, 0))    
+        self.connect((self.wifi_phy_hier_0, 0), (self.blocks_multiply_const_vxx_0, 0))
+        self.connect((self.wifi_phy_hier_0, 1), (self.blocks_null_sink_0, 0))     
 
         self.controller.start()
 
