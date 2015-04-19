@@ -337,7 +337,11 @@ class DSRCUnit(Thread, EventListener, JobCallback, SensorCallback):
 
     def set_plugin(self):
         plugin_name = raw_input("Plugin Name:")
-        Plugin.set_plugin(plugin_name)
+        self._set_plugin(plugin_name)
+        # Plugin.set_plugin(plugin_name)
+        # if Plugin.executor_module:
+        #     if Plugin.executor_module.SEND_INTERVALS:
+        #         self.customized_time_intervals = Plugin.executor_module.SEND_INTERVALS
 
     def set_executor(self, b):
         self.flag_plugin_customized_executor = b
@@ -442,6 +446,13 @@ class DSRCUnit(Thread, EventListener, JobCallback, SensorCallback):
             self.job_processor.pause_processor()
             #send bump to monitor
 
+    def _set_plugin(self, plugin_name):
+        Plugin.set_plugin(plugin_name)
+        if Plugin.executor_module:
+            if Plugin.executor_module.SEND_INTERVALS:
+                self.customized_time_intervals = Plugin.executor_module.SEND_INTERVALS
+        self.set_executor(True)
+        self.set_receiver(True)
 
     def usrp_event_received(self, event):
         if not event:
@@ -498,9 +509,13 @@ class DSRCUnit(Thread, EventListener, JobCallback, SensorCallback):
                     elif event.command.name == DSRC_Event.COMMAND_NAME_PLUGIN:
                         args = event.command.args
                         plugin_name = args[0]
-                        Plugin.set_plugin(plugin_name)
-                        self.set_executor(True)
-                        self.set_receiver(True)
+                        self._set_plugin(self, plugin_name)
+                        # Plugin.set_plugin(plugin_name)
+                        # if Plugin.executor_module:
+                        #     if Plugin.executor_module.SEND_INTERVALS:
+                        #         self.customized_time_intervals = Plugin.executor_module.SEND_INTERVALS
+                        # self.set_executor(True)
+                        # self.set_receiver(True)
                     elif event.command.name == DSRC_Event.COMMAND_NAME_DISABLE_PLUGIN:
                         self.set_executor(False)
                         self.set_receiver(False)

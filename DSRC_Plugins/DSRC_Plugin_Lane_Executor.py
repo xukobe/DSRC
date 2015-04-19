@@ -4,7 +4,7 @@ import DSRC_Plugins as Plugin
 from Controller_Module import DSRC_JobProcessor
 from Controller_Module.DSRC_JobProcessor import Job
 
-SEND_INTERVALS = 5
+SEND_INTERVALS = 20
 
 Counter = 0
 
