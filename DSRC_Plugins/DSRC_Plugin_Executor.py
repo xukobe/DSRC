@@ -16,11 +16,16 @@ SEND_INTERVALS = 10
 # Must implement
 def execute(dsrc_unit):
     receiver_module = Plugin.get_receiver_module()
+    # print "execute"
     if receiver_module.do:
-        job1 = Job(dsrc_unit, DSRC_JobProcessor.GO, 1, 30, 0)
-        job2 = Job(dsrc_unit, DSRC_JobProcessor.GO, 1, 20, 90)
-        job3 = Job(dsrc_unit, DSRC_JobProcessor.GO, 1, 20, -90)
-        job4 = Job(dsrc_unit, DSRC_JobProcessor.GO, 2, 30, 0)
+        job1 = Job(dsrc_unit, DSRC_JobProcessor.GO, 3, 30, 0)
+        job2 = Job(dsrc_unit, DSRC_JobProcessor.GO, 2, 20, 45)
+        job3 = Job(dsrc_unit, DSRC_JobProcessor.GO, 2, 20, -45)
+        job4 = Job(dsrc_unit, DSRC_JobProcessor.GO, 3, 30, 0)
+        dsrc_unit.job_processor.add_new_job(job1)
+        dsrc_unit.job_processor.add_new_job(job2)
+        dsrc_unit.job_processor.add_new_job(job3)
+        dsrc_unit.job_processor.add_new_job(job4)
         receiver_module.execute_time = time.time()
         receiver_module.do = False
     # msg = _generate_customized_message(dsrc_unit.unit_id, DSRC_Event.DESTINATION_ALL)

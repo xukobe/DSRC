@@ -8,12 +8,15 @@ do = False
 execute_time = 0
 time_duration = 30
 
+
 def customized_event_handler(dsrc_unit, event):
     if event.type == DSRC_Event.TYPE_CUSTOMIZED:
         current_time = time.time()
+        # print str(current_time)
         if current_time - execute_time > 30:
             global do
             do = event.do_it
+            # print str(do)
 
 
 def print_receiver():

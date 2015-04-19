@@ -427,6 +427,8 @@ class DSRCUnit(Thread, EventListener, JobCallback, SensorCallback):
                             self.unit_mode = DSRC_UNIT_MODE_FREE
                         elif value == DSRC_Event.SETTINGS_NAME_STYLE_CUSTOMIZED:
                             self.unit_mode = DSRC_UNIT_MODE_CUSTOMIZED
+                            self.set_executor(True)
+                            self.set_receiver(True)
                 elif event.sub_type == DSRC_Event.SUBTYPE_CMD:
                     if event.command.name == DSRC_Event.COMMAND_NAME_SAFE_MODE:
                         if self.create:

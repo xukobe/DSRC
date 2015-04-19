@@ -9,7 +9,7 @@ stopSign = False
 
 slowSign = False
 
-CarSize = 30
+CarSize = 50
 
 
 def customized_event_handler(dsrc_unit, event):
@@ -17,7 +17,7 @@ def customized_event_handler(dsrc_unit, event):
     global slowSign
     if event.type == Event.TYPE_CAR_CAR:
         x1 = dsrc_unit.position_tracker.x
-        y1 = dsrc_unit.position_tracker.y
+        y1 =dsrc_unit.position_tracker.y
         r1 = dsrc_unit.position_tracker.radian
 
         coord = event.coordinates
@@ -45,10 +45,10 @@ def customized_event_handler(dsrc_unit, event):
 
             # print str(x) + ":" + str(y) + ":time_f:" + str(time1_f) + ":time_s:" + str(time1_s) + ":time2:" + str(time2)
 
-            if abs(time1_s - time2) <= 3 and time1_s <= 3:
+            if abs(time1_s - time2) <= 5 and time1_s <= 7:
                 # print "Stop sign"
                 stopSign = True
-            elif abs(time1_f - time2) <= 3 and time1_f <= 3:
+            elif abs(time1_f - time2) <= 5 and time1_f <= 7:
                 # print "Slow sign"
                 stopSign = False
                 slowSign = True
@@ -103,6 +103,8 @@ def calculate_collision_point(x1, y1, r1, x2, y2, r2, speed1, speed2):
         dx1 = x - x1
         dy1 = y - y1
         d21 = dx1*dx1 + dy1*dy1
+        if d21 == 0:
+            return x, y
         cos1 = math.acos(dx1/math.sqrt(d21))
         if dy1 < 0:
             cos1 = 2*math.pi - cos1
@@ -110,6 +112,8 @@ def calculate_collision_point(x1, y1, r1, x2, y2, r2, speed1, speed2):
         dx2 = x - x2
         dy2 = y - y2
         d22 = dx2*dx2 + dy2*dy2
+        if d22 == 0:
+            return x, y
         cos2 = math.acos(dx2/math.sqrt(d22))
         if dy2 < 0:
             cos2 = 2*math.pi - cos2

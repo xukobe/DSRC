@@ -10,8 +10,7 @@ class CustomizedEvent(Event):
         self.do_it = False
 
     def self_parse(self):
-        customized_obj = self.msg_obj[DSRC_Event.TYPE_CUSTOMIZED]
-        self.do_it = customized_obj["do"]
+        self.do_it = self.msg_obj["do"]
 
 
 
