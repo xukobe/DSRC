@@ -45,7 +45,7 @@ def customized_event_handler(dsrc_unit, event):
 
             # print str(x) + ":" + str(y) + ":time_f:" + str(time1_f) + ":time_s:" + str(time1_s) + ":time2:" + str(time2)
 
-            if abs(time1_s - time2) <= 5 and time1_s <= 7:
+            if abs(time1_s - time2) <= 3 and time1_s <= 5:
                 # print "Stop sign"
                 stopSign = True
             elif abs(time1_f - time2) <= 5 and time1_f <= 7:
