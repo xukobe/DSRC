@@ -229,6 +229,8 @@ class DSRCUnit(Thread, EventListener, JobCallback, SensorCallback):
                 self.setpos()
             elif user_input == 'set plugin':
                 self.set_plugin()
+            elif user_input == 'unit mode':
+                self.to_unit_mode()
             elif user_input == 'enable executor':
                 self.set_executor(True)
             elif user_input == 'enable receiver':
@@ -307,7 +309,24 @@ class DSRCUnit(Thread, EventListener, JobCallback, SensorCallback):
         print "Direction: " + str((self.position_tracker.radian/math.pi)*180)
 
     def help_info(self):
-        print "Empty"
+        print "help"
+        print "quit"
+        print "control"
+        print "position"
+        print "safe mode"
+        print "full mode"
+        print "reconnect"
+        print "setpos"
+        print "set plugin"
+        print "unit mode"
+        print "enable executor"
+        print "enable receiver"
+        print "disable executor"
+        print "disable receiver"
+        print "info"
+        print "setPower"
+        print "setRate"
+        Plugin.customized_cmd(self, "help")
 
     def welcome_info(self):
         print "Welcome to DSRC System!"
@@ -348,6 +367,31 @@ class DSRCUnit(Thread, EventListener, JobCallback, SensorCallback):
             return
         msg = TransceiverSetting.generate_power_setting_msg(rate)
         self.send_to_USRP(msg)
+
+    def to_unit_mode(self):
+        mode_str = raw_input("Mode:")
+        try:
+            mode = int(mode_str)
+        except ValueError, e:
+            print "Cannot convert " + mode_str + " into a number."
+            return
+        if mode == 1:
+            self.set_unit_mode(DSRC_UNIT_MODE_LEAD)
+            self.set_executor(False)
+            self.set_receiver(False)
+        elif mode == 2:
+            self.set_unit_mode(DSRC_UNIT_MODE_FOLLOW)
+            self.set_executor(False)
+            self.set_receiver(False)
+        elif mode == 3:
+            self.set_unit_mode(DSRC_UNIT_MODE_FREE)
+            self.set_executor(False)
+            self.set_receiver(False)
+        elif mode == 4:
+            self.set_unit_mode(DSRC_UNIT_MODE_CUSTOMIZED)
+            self.set_executor(True)
+            self.set_receiver(True)
+
 
     # Simple Interface for iRobot Control
     def do_action(self, simple_action):

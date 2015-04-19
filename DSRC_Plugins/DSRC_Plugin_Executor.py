@@ -34,8 +34,11 @@ def execute(dsrc_unit):
 
 # Must implement
 def customized_cmd(dsrc_unit, user_input):
-    if user_input == 'plugin':
-        print_executor()
+    if user_input == 'snakemove':
+        receiver_module = Plugin.get_receiver_module()
+        receiver_module.do = True
+    elif user_input == "help":
+        print "snakemove"
 
 # def _generate_customized_message(source, destination):
 #     msg_obj = {}

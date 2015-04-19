@@ -4,7 +4,7 @@ import DSRC_Plugins as Plugin
 from Controller_Module import DSRC_JobProcessor
 from Controller_Module.DSRC_JobProcessor import Job
 
-SEND_INTERVALS = 1
+SEND_INTERVALS = 5
 
 Counter = 0
 
@@ -24,13 +24,12 @@ def execute(dsrc_unit):
                 arg2 = dsrc_unit.job_processor.currentJob.arg2
                 time = dsrc_unit.job_processor.currentJob.get_current_left_time()
                 new_time = arg1 * time / 15
-                print "Slow New time:" + str(new_time)
+                # print "Slow New time:" + str(new_time)
                 job = Job(dsrc_unit, DSRC_JobProcessor.GO, new_time, 15, arg2)
                 dsrc_unit.job_processor.insert_new_job(job)
                 dsrc_unit.job_processor.cancel_current_job()
     else:
         # print "Normal"
-
         if dsrc_unit.job_processor.pause:
             dsrc_unit.job_processor.resume_processor()
         else:
@@ -40,7 +39,7 @@ def execute(dsrc_unit):
                     arg2 = dsrc_unit.job_processor.currentJob.arg2
                     time = dsrc_unit.job_processor.currentJob.get_current_left_time()
                     new_time = arg1 * time / 30
-                    print "Normal New time:" + str(new_time)
+                    # print "Normal New time:" + str(new_time)
                     job = Job(dsrc_unit, DSRC_JobProcessor.GO, new_time, 30, arg2)
                     dsrc_unit.job_processor.insert_new_job(job)
                     dsrc_unit.job_processor.cancel_current_job()
@@ -59,12 +58,17 @@ def execute(dsrc_unit):
 
 
 def customized_cmd(dsrc_unit, user_input):
-    global Lane_sign
+    # global Lane_sign
+    # if user_input == "auto":
+    #     print "Auto driving!"
+    #     Lane_sign = True
+    # elif user_input == "back":
+    #     print "Back to manual mode"
+    #     Lane_sign = False
+    # elif user_input == 'plugin':
+    #     print "I am lane executor!"
     if user_input == "auto":
-        print "Auto driving!"
-        Lane_sign = True
-    elif user_input == "back":
-        print "Back to manual mode"
-        Lane_sign = False
-    elif user_input == 'plugin':
-        print "I am lane executor!"
+        job = Job(dsrc_unit, DSRC_JobProcessor.GO, 8, 30, 0)
+        dsrc_unit.job_processor.add_new_job(job)
+    elif user_input == "help":
+        print "auto"
