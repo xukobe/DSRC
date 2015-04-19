@@ -7,11 +7,11 @@ from Event_Module.DSRC_Event import Event
 class CustomizedEvent(Event):
     def __init__(self):
         Event.__init__(self)
-        self.customized_action = None
+        self.do_it = False
 
     def self_parse(self):
         customized_obj = self.msg_obj[DSRC_Event.TYPE_CUSTOMIZED]
-        self.customized_action = customized_obj["customized_action"]
+        self.do_it = customized_obj["do"]
 
 
 
