@@ -41,7 +41,11 @@ def set_plugin(name):
     global receiver_module
     global plugin_name
     global plugins
-    plugin = plugins[name]
+    plugin = None
+    try:
+        plugin = plugins[name]
+    except KeyError, e:
+        pass
     if plugin:
         event_module = plugin.event_module
         executor_module = plugin.executor_module

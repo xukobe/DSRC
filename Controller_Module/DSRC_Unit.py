@@ -130,10 +130,10 @@ class DSRCUnit(Thread, EventListener, JobCallback, SensorCallback):
         self.flag_plugin_customized_event = config.getboolean("Plugin", "CustomizedEvent")
         self.flag_plugin_customized_executor = config.getboolean("Plugin", "CustomizedExecutor")
         self.flag_plugin_customized_receiver = config.getboolean("Plugin", "CustomizedReceiver")
-        if self.flag_msg_customized_send:
-            executor_module = Plugin.get_executor_module()
-            if executor_module.SEND_INTERVALS:
-                self.customized_time_intervals = executor_module.SEND_INTERVALS
+        executor_module = Plugin.get_executor_module()
+        if executor_module:
+            if executor_module.EXECUTE_INTERVALS:
+                self.customized_time_intervals = executor_module.EXECUTE_INTERVALS
 
         # Message Section
         self.flag_msg_car_car_send = config.getboolean("Message", "SendCarCar")
@@ -340,8 +340,8 @@ class DSRCUnit(Thread, EventListener, JobCallback, SensorCallback):
         self._set_plugin(plugin_name)
         # Plugin.set_plugin(plugin_name)
         # if Plugin.executor_module:
-        #     if Plugin.executor_module.SEND_INTERVALS:
-        #         self.customized_time_intervals = Plugin.executor_module.SEND_INTERVALS
+        #     if Plugin.executor_module.EXECUTE_INTERVALS:
+        #         self.customized_time_intervals = Plugin.executor_module.EXECUTE_INTERVALS
 
     def set_executor(self, b):
         self.flag_plugin_customized_executor = b
@@ -449,8 +449,8 @@ class DSRCUnit(Thread, EventListener, JobCallback, SensorCallback):
     def _set_plugin(self, plugin_name):
         Plugin.set_plugin(plugin_name)
         if Plugin.executor_module:
-            if Plugin.executor_module.SEND_INTERVALS:
-                self.customized_time_intervals = Plugin.executor_module.SEND_INTERVALS
+            if Plugin.executor_module.EXECUTE_INTERVALS:
+                self.customized_time_intervals = Plugin.executor_module.EXECUTE_INTERVALS
         self.set_executor(True)
         self.set_receiver(True)
 
@@ -509,11 +509,11 @@ class DSRCUnit(Thread, EventListener, JobCallback, SensorCallback):
                     elif event.command.name == DSRC_Event.COMMAND_NAME_PLUGIN:
                         args = event.command.args
                         plugin_name = args[0]
-                        self._set_plugin(self, plugin_name)
+                        self._set_plugin(plugin_name)
                         # Plugin.set_plugin(plugin_name)
                         # if Plugin.executor_module:
-                        #     if Plugin.executor_module.SEND_INTERVALS:
-                        #         self.customized_time_intervals = Plugin.executor_module.SEND_INTERVALS
+                        #     if Plugin.executor_module.EXECUTE_INTERVALS:
+                        #         self.customized_time_intervals = Plugin.executor_module.EXECUTE_INTERVALS
                         # self.set_executor(True)
                         # self.set_receiver(True)
                     elif event.command.name == DSRC_Event.COMMAND_NAME_DISABLE_PLUGIN:

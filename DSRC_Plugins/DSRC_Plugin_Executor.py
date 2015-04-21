@@ -10,7 +10,7 @@ from Controller_Module.DSRC_JobProcessor import Job
 
 # Must Be Assigned
 # Times of the MiniInterval in unit_config
-SEND_INTERVALS = 10
+EXECUTE_INTERVALS = 10
 
 
 # Must implement
