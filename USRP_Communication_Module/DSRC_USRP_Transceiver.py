@@ -26,6 +26,7 @@ import foo
 import ieee802_11
 import pmt
 import time
+import signal
 
 class WifiTransceiver(gr.top_block):
 
@@ -165,16 +166,42 @@ class WifiTransceiver(gr.top_block):
         self.encoding = encoding
         self.wifi_phy_hier_0.set_encoding(encoding)
 
-if __name__ == '__main__':
+close_USRP = False
+
+
+def signal_receiver(signum, stack):
+    print "Received " + str(signum)
+    global close_USRP
+    close_USRP = True
+
+
+def main():
+    global close_USRP
     parser = OptionParser(option_class=eng_option, usage="%prog: [options]")
     (options, args) = parser.parse_args()
     tb = WifiTransceiver()
     tb.start()
-    try:
-        raw_input('Press Enter to quit: ')
-    except EOFError:
-        pass
-    tb.stop()
-    tb.controller.stop_self()
-    tb.transmitter.stop_self()
+
+    home = os.path.expanduser("~")
+    file_name = home+'/.DSRC_Server_Socket'
+    f = open(file_name, 'w')
+    f.write("1")
+    f.close()
+
+    close_USRP = False
+    signal.signal(signal.SIGUSR1, signal_receiver)
+    while True:
+        if close_USRP:
+            os.remove(file_name)
+            try:
+                tb.transmitter.stop_self()
+                tb.stop()
+            except Exception, e:
+                print "Bye!"
+            close_USRP = False
+        time.sleep(0.5)
     exit()
+
+
+if __name__ == '__main__':
+    main()

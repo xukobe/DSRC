@@ -46,7 +46,7 @@ ROBOT_RADIUS_SPEED = 90
 
 
 class DSRCUnit(Thread, EventListener, JobCallback, SensorCallback):
-    def __init__(self, unit_id, IP="127.0.0.1", socket_port=10124, robot_port="/dev/ttyUSB0",
+    def __init__(self, unit_id, stdin=sys.stdin, IP="127.0.0.1", socket_port=10124, robot_port="/dev/ttyUSB0",
                  unit_mode=DSRC_UNIT_MODE_FREE,
                  avoid_collision_mode=False):
         """
@@ -58,6 +58,7 @@ class DSRCUnit(Thread, EventListener, JobCallback, SensorCallback):
         """
         Thread.__init__(self)
         self.running = True
+        self.stdin = stdin
         self.unit_id = unit_id
         self.socket_port = socket_port
         self.IP = IP
@@ -153,6 +154,12 @@ class DSRCUnit(Thread, EventListener, JobCallback, SensorCallback):
     def load_plugin(self):
         Plugin.load_plugin()
 
+    def get_input(self, prompt):
+        sys.stdout.write(prompt)
+        text = self.stdin.readline().strip('\n')
+        print text
+        return text
+
     def car_info(self):
         print "###################################################################"
         print "Car Unit:" + self.unit_id
@@ -210,7 +217,7 @@ class DSRCUnit(Thread, EventListener, JobCallback, SensorCallback):
 
     def run(self):
         while self.running:
-            user_input = raw_input(self.unit_id + ">")
+            user_input = self.get_input(self.unit_id + ">")
             if user_input == "help":
                 self.help_info()
             elif user_input == 'quit':
@@ -250,19 +257,19 @@ class DSRCUnit(Thread, EventListener, JobCallback, SensorCallback):
         print "User interaction thread is stopped!"
 
     def setpos(self):
-        x_str = raw_input("X:")
+        x_str = self.get_input("X:")
         try:
             x = float(x_str)
         except ValueError, e:
             print "Cannot convert " + x_str + " into a number."
             return
-        y_str = raw_input("Y:")
+        y_str = self.get_input("Y:")
         try:
             y = float(y_str)
         except ValueError, e:
             print "Cannot convert " + y_str + " into a number."
             return
-        radian_str = raw_input("Radian:")
+        radian_str = self.get_input("Radian:")
         try:
             radian = float(radian_str)
         except ValueError, e:
@@ -336,7 +343,7 @@ class DSRCUnit(Thread, EventListener, JobCallback, SensorCallback):
         self.unit_mode = mode
 
     def set_plugin(self):
-        plugin_name = raw_input("Plugin Name:")
+        plugin_name = self.get_input("Plugin Name:")
         self._set_plugin(plugin_name)
         # Plugin.set_plugin(plugin_name)
         # if Plugin.executor_module:
@@ -353,7 +360,7 @@ class DSRCUnit(Thread, EventListener, JobCallback, SensorCallback):
         self.avoid_collision_mode = isAvoid
 
     def setPower(self):
-        power_str = raw_input("Power:")
+        power_str = self.get_input("Power:")
         try:
             power = int(power_str)
         except ValueError, e:
@@ -363,7 +370,7 @@ class DSRCUnit(Thread, EventListener, JobCallback, SensorCallback):
         self.send_to_USRP(msg)
 
     def setRate(self):
-        rate_str = raw_input("Rate:")
+        rate_str = self.get_input("Rate:")
         try:
             rate = int(rate_str)
         except ValueError, e:
@@ -373,7 +380,7 @@ class DSRCUnit(Thread, EventListener, JobCallback, SensorCallback):
         self.send_to_USRP(msg)
 
     def to_unit_mode(self):
-        mode_str = raw_input("Mode:")
+        mode_str = self.get_input("Mode:")
         try:
             mode = int(mode_str)
         except ValueError, e:
@@ -835,8 +842,15 @@ def test_lead_mode():
     unit.join()
 
 
-def main():
-    pass
+def main(stdin):
+    home = os.path.expanduser("~")
+    file_name = home+"/.DSRC_Server_Socket"
+    b = os.path.isfile(file_name)
+    while not b:
+        b = os.path.isfile(file_name)
+        time.sleep(0.1)
+    unit = DSRCUnit("Empty", stdin=stdin)
+    unit.join()
 
 if __name__ == '__main__':
-    test_follow_mode()
+    main()
