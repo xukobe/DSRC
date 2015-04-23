@@ -101,7 +101,11 @@ class DSRCUnit(Thread, EventListener, JobCallback, SensorCallback):
         # iRobot
         # self.create = Create(self.robot_port)
         if self.robot_port != "None":
-            self.create = Create(self.robot_port)
+            try:
+                self.create = Create(self.robot_port)
+            except Exception, e:
+                print "Serial port not open"
+                self.create = None
         else:
             self.create = None
         # A processor to process the robot job in order

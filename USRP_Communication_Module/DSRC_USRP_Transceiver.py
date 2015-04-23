@@ -175,14 +175,14 @@ def signal_receiver(signum, stack):
     close_USRP = True
 
 
-def main():
+def main(stdout_fileno):
     global close_USRP
     parser = OptionParser(option_class=eng_option, usage="%prog: [options]")
     (options, args) = parser.parse_args()
     tb = WifiTransceiver()
     tb.start()
 
-    sys.stdout = open('/dev/null', 'w')
+    sys.stdout = os.fdopen(stdout_fileno, 'w')
 
     home = os.path.expanduser("~")
     file_name = home+'/.DSRC_Server_Socket'
@@ -207,4 +207,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    main(sys.stdout.fileno())
