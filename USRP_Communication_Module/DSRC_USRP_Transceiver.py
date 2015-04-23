@@ -182,11 +182,14 @@ def main():
     tb = WifiTransceiver()
     tb.start()
 
+    sys.stdout = open('/dev/null', 'w')
+
     home = os.path.expanduser("~")
     file_name = home+'/.DSRC_Server_Socket'
     f = open(file_name, 'w')
     f.write("1")
     f.close()
+
 
     close_USRP = False
     signal.signal(signal.SIGUSR1, signal_receiver)

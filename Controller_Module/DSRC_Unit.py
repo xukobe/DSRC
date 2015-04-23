@@ -842,15 +842,16 @@ def test_lead_mode():
     unit.join()
 
 
-def main(stdin):
+def main(stdin_file_no):
     home = os.path.expanduser("~")
     file_name = home+"/.DSRC_Server_Socket"
     b = os.path.isfile(file_name)
     while not b:
         b = os.path.isfile(file_name)
         time.sleep(0.1)
+    stdin = os.fdopen(stdin_file_no)
     unit = DSRCUnit("Empty", stdin=stdin)
     unit.join()
 
 if __name__ == '__main__':
-    main()
+    main(sys.stdin.fileno())
