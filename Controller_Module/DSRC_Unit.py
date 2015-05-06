@@ -39,6 +39,7 @@ ROBOT_BACKWARD = "backward"
 ROBOT_TURN_LEFT = "turn left"
 ROBOT_TURN_RIGHT = "turn right"
 ROBOT_PAUSE = "pause"
+ROBOT_QUIT = "quit"
 
 ROBOT_REGULAR_SPEED = 30
 ROBOT_FAST_SPEED = 35
@@ -114,7 +115,13 @@ class DSRCUnit(Thread, EventListener, JobCallback, SensorCallback):
         self.sensor_detector = CreateSensorDetector(create=self.create, callback=self)
         self.sensor_detector.start()
 
-        self.position_tracker = DSRCPositionTracker(self.job_processor, 0, 0, 0)
+        # Cursor control
+        self.cursor_action = None
+
+        # Seq
+        self.seq = -1
+
+        self.position_tracker = DSRCPositionTracker(self.job_processor, 20, 20, 0)
         self.bg_thread = DSRCBGThread(self.bg_run)
         self.bg_thread.start()
         self.start()
@@ -228,6 +235,7 @@ class DSRCUnit(Thread, EventListener, JobCallback, SensorCallback):
                 self.stop_self()
             elif user_input == "control":
                 self.keyboard_control()
+                # self.keyboard_control()
             elif user_input == "position":
                 self.position_info()
             elif user_input == "safe mode":
@@ -281,38 +289,58 @@ class DSRCUnit(Thread, EventListener, JobCallback, SensorCallback):
             return
         self.position_tracker.set_pos(x, y, radian)
 
+    # def keyboard_control_stdin(self):
+    #     while True:
+    #         c = self.getch()
+    #         if c == 'w':
+    #             self.do_simple_action(ROBOT_FORWARD)
+    #         elif c == 's':
+    #             self.do_simple_action(ROBOT_BACKWARD)
+    #         elif c == 'd':
+    #             self.do_simple_action(ROBOT_TURN_RIGHT)
+    #         elif c == 'a':
+    #             self.do_simple_action(ROBOT_TURN_LEFT)
+    #         elif c == '':
+    #             self.do_simple_action(ROBOT_PAUSE)
+    #         elif c == 'q':
+    #             break
+    #         time.sleep(0.05)
+    #
+    # def getch(self):
+    #     import sys,tty, termios, fcntl
+    #     fd = self.stdin.fileno()
+    #     old_settings = termios.tcgetattr(fd)
+    #     fl = fcntl.fcntl(fd, fcntl.F_GETFL)
+    #     fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
+    #     ch = ''
+    #     try:
+    #         tty.setraw(sys.stdin.fileno())
+    #         ch = sys.stdin.read(1)
+    #     except Exception, e:
+    #         ch = ''
+    #     finally:
+    #         termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+    #         fcntl.fcntl(fd, fcntl.F_SETFL, fl)
+    #         return ch
+
     # Free style control
     def keyboard_control(self):
-        screen = curses.initscr()
-        screen.keypad(True)
-        screen.clear()
-        instruction = "'w' or up_arrow to go forward\n" \
-                      "'s' or down_arrow to go backward\n" \
-                      "'a' or left_arrow to turn left\n" \
-                      "'d' or right_arrow to turn right\n" \
-                      "'p' or space to pause\n" \
-                      "'q' or esc to quit"
-        screen.addstr(instruction)
-        curses.noecho()
+        event_detector = DSRCKeyboardEventDetector()
+        event_detector.start()
         while True:
-            c = screen.getch()
-            if c == ord("w") or c == curses.KEY_UP:
-                self.do_action(ROBOT_FORWARD)
-            elif c == ord("s") or c == curses.KEY_DOWN:
-                self.do_action(ROBOT_BACKWARD)
-            elif c == ord("a") or c == curses.KEY_LEFT:
-                self.do_action(ROBOT_TURN_LEFT)
-            elif c == ord("d") or c == curses.KEY_RIGHT:
-                self.do_action(ROBOT_TURN_RIGHT)
-            elif c == ord("p") or c == ord(" "):
-                self.do_action(ROBOT_PAUSE)
-            elif c == ord("q") or c == curses.KEY_EXIT:
+            if event_detector.event == ROBOT_FORWARD:
+                self.do_simple_action(ROBOT_FORWARD)
+            elif event_detector.event == ROBOT_BACKWARD:
+                self.do_simple_action(ROBOT_BACKWARD)
+            elif event_detector.event == ROBOT_TURN_RIGHT:
+                self.do_simple_action(ROBOT_TURN_RIGHT)
+            elif event_detector.event == ROBOT_TURN_LEFT:
+                self.do_simple_action(ROBOT_TURN_LEFT)
+            elif event_detector.event == ROBOT_PAUSE:
+                self.do_simple_action(ROBOT_PAUSE)
+            elif event_detector.event == ROBOT_QUIT:
                 break
-            else:
-                pass
-            time.sleep(0.01)
-
-        curses.endwin()
+            time.sleep(0.05)
 
     def position_info(self):
         print "X: " + str(self.position_tracker.x)
@@ -407,7 +435,6 @@ class DSRCUnit(Thread, EventListener, JobCallback, SensorCallback):
             self.set_executor(True)
             self.set_receiver(True)
 
-
     # Simple Interface for iRobot Control
     def do_action(self, simple_action):
         if simple_action == ROBOT_PAUSE:
@@ -438,6 +465,27 @@ class DSRCUnit(Thread, EventListener, JobCallback, SensorCallback):
             self.job_processor.add_new_job(job1)
             self.job_processor.add_new_job(job2)
         self.job_processor.cancel_current_job()
+
+    def do_simple_action(self, action_name):
+        if self.cursor_action and self.cursor_action != action_name:
+            self.cursor_action = None
+            self.job_processor.cancel_current_job()
+
+        if self.cursor_action is None:
+            if action_name == ROBOT_FORWARD:
+                job = Job(self, DSRC_JobProcessor.GO, None, ROBOT_REGULAR_SPEED, 0)
+                self.job_processor.add_new_job(job)
+            elif action_name == ROBOT_BACKWARD:
+                job = Job(self, DSRC_JobProcessor.GO, None, -ROBOT_REGULAR_SPEED, 0)
+                self.job_processor.add_new_job(job)
+            elif action_name == ROBOT_TURN_LEFT:
+                job = Job(self, DSRC_JobProcessor.GO, None, 0, ROBOT_RADIUS_SPEED)
+                self.job_processor.add_new_job(job)
+            elif action_name == ROBOT_TURN_RIGHT:
+                job = Job(self, DSRC_JobProcessor.GO, None, 0, -ROBOT_RADIUS_SPEED)
+                self.job_processor.add_new_job(job)
+            elif action_name == ROBOT_PAUSE:
+                self.job_processor.cancel_current_job()
 
     def do_accurate_action(self, arg1, arg2):
         job = Job(self, DSRC_JobProcessor.GO, None, arg1, arg2)
@@ -480,6 +528,10 @@ class DSRCUnit(Thread, EventListener, JobCallback, SensorCallback):
         if event.destination in (DSRC_Event.DESTINATION_ALL, self.unit_id):
             if event.type == DSRC_Event.TYPE_MONITOR_CAR:
                 self.send_ack(event.seq)
+                if self.seq == event.seq:
+                    return
+                else:
+                    self.seq = event.seq
                 if event.sub_type == DSRC_Event.SUBTYPE_SETTING:
                     if event.setting.name == DSRC_Event.SETTINGS_NAME_MINI_INTERVAL:
                         self.dsrc_thread_update_interval = event.setting.value
@@ -615,6 +667,66 @@ class DSRCUnit(Thread, EventListener, JobCallback, SensorCallback):
         self.sensor_detector.stop_self()
         self.running = False
         exit()
+
+
+class DSRCKeyboardEventDetector(Thread):
+    def __init__(self):
+        Thread.__init__(self)
+        self.event = None
+        self.err_times = 0
+
+    def run(self):
+        screen = curses.initscr()
+        screen.keypad(True)
+        screen.clear()
+        instruction = "'w' or up_arrow to go forward\n" \
+                      "'s' or down_arrow to go backward\n" \
+                      "'a' or left_arrow to turn left\n" \
+                      "'d' or right_arrow to turn right\n" \
+                      "'p' or space to pause\n" \
+                      "'q' or esc to quit"
+        screen.addstr(instruction)
+        curses.noecho()
+        screen.nodelay(1)
+
+        while True:
+            try:
+                c = screen.getkey()
+
+                if c == "w" or c == curses.KEY_UP:
+                    self.event = ROBOT_FORWARD
+                    self.err_times = 0
+                    curses.flushinp()
+                elif c == "s" or c == curses.KEY_DOWN:
+                    self.event = ROBOT_BACKWARD
+                    self.err_times = 0
+                    curses.flushinp()
+                elif c == "a" or c == curses.KEY_LEFT:
+                    self.event = ROBOT_TURN_LEFT
+                    self.err_times = 0
+                    curses.flushinp()
+                elif c == "d" or c == curses.KEY_RIGHT:
+                    self.event = ROBOT_TURN_RIGHT
+                    self.err_times = 0
+                    curses.flushinp()
+                elif c == "p" or c == ord(" "):
+                    self.event = ROBOT_PAUSE
+                    self.err_times = 0
+                    curses.flushinp()
+                elif c == "q" or c == curses.KEY_EXIT:
+                    self.event = ROBOT_QUIT
+                    break
+                else:
+                    self.event = ROBOT_PAUSE
+            except Exception, e:
+                if self.err_times >= 400:
+                    self.event = ROBOT_PAUSE
+                else:
+                    self.err_times += 1
+
+            time.sleep(0.000001)
+
+        curses.endwin()
 
 
 class DSRCBGThread(Thread):
