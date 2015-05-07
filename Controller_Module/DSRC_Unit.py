@@ -240,12 +240,15 @@ class DSRCUnit(Thread, EventListener, JobCallback, SensorCallback):
                 self.position_info()
             elif user_input == "safe mode":
                 self.create.toSafeMode()
+                time.sleep(0.1)
                 self.create.playNote(81, 1)
             elif user_input == "full mode":
                 self.create.toFullMode()
+                time.sleep(0.1)
                 self.create.playNote(81, 1)
             elif user_input == "reconnect":
                 self.create.reconnect(self.robot_port)
+                time.sleep(0.1)
                 self.create.playNote(81, 1)
             elif user_input == "setpos":
                 self.setpos()
