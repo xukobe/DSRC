@@ -7,6 +7,10 @@
 #execfile("~/.grc_gnuradio/wifi_phy_hier.py")
 import os
 import sys
+from os.path import expanduser
+
+home = expanduser("~")
+execfile(home + "/.grc_gnuradio/wifi_phy_hier.py")
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
@@ -17,7 +21,7 @@ from gnuradio import uhd
 from gnuradio.eng_option import eng_option
 from gnuradio.filter import firdes
 from optparse import OptionParser
-from wifi_phy_hier import wifi_phy_hier
+# from wifi_phy_hier import wifi_phy_hier
 from DSRC_Messenger_Blocks import DsrcServer
 from dsrc_message_generator import message_generator
 from dsrc_message_collector import message_collector
