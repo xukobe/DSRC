@@ -240,10 +240,13 @@ class DSRCUnit(Thread, EventListener, JobCallback, SensorCallback):
                 self.position_info()
             elif user_input == "safe mode":
                 self.create.toSafeMode()
+                self.create.playNote(81, 1)
             elif user_input == "full mode":
                 self.create.toFullMode()
+                self.create.playNote(81, 1)
             elif user_input == "reconnect":
                 self.create.reconnect(self.robot_port)
+                self.create.playNote(81, 1)
             elif user_input == "setpos":
                 self.setpos()
             elif user_input == 'set plugin':
@@ -261,9 +264,9 @@ class DSRCUnit(Thread, EventListener, JobCallback, SensorCallback):
             elif user_input == 'info':
                 self.car_info()
             elif user_input == "setPower":
-                self.setPower()
+                self.set_power_prompt()
             elif user_input == "setRate":
-                self.setRate()
+                self.set_rate_prompt()
             else:
                 Plugin.customized_cmd(self, user_input)
         print "User interaction thread is stopped!"
@@ -391,7 +394,7 @@ class DSRCUnit(Thread, EventListener, JobCallback, SensorCallback):
     def set_avoid_collision(self, isAvoid):
         self.avoid_collision_mode = isAvoid
 
-    def setPower(self):
+    def set_power_prompt(self):
         power_str = self.get_input("Power:")
         try:
             power = int(power_str)
@@ -401,7 +404,21 @@ class DSRCUnit(Thread, EventListener, JobCallback, SensorCallback):
         msg = TransceiverSetting.generate_power_setting_msg(power)
         self.send_to_USRP(msg)
 
-    def setRate(self):
+    def setPower(self, power):
+        msg = TransceiverSetting.generate_power_setting_msg(power)
+        self.send_to_USRP(msg)
+
+    def set_rate_prompt(self):
+        rate_str = self.get_input("Rate:")
+        try:
+            rate = int(rate_str)
+        except ValueError, e:
+            print "Cannot convert " + rate_str + " into a number."
+            return
+        msg = TransceiverSetting.generate_power_setting_msg(rate)
+        self.send_to_USRP(msg)
+
+    def setRate(self, rate):
         rate_str = self.get_input("Rate:")
         try:
             rate = int(rate_str)
