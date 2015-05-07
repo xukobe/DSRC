@@ -241,15 +241,15 @@ class DSRCUnit(Thread, EventListener, JobCallback, SensorCallback):
             elif user_input == "safe mode":
                 self.create.toSafeMode()
                 time.sleep(0.1)
-                self.create.playNote(81, 1)
+                self.create.playNote(81, 64, 1)
             elif user_input == "full mode":
                 self.create.toFullMode()
                 time.sleep(0.1)
-                self.create.playNote(81, 1)
+                self.create.playNote(81, 64, 1)
             elif user_input == "reconnect":
                 self.create.reconnect(self.robot_port)
                 time.sleep(0.1)
-                self.create.playNote(81, 1)
+                self.create.playNote(81, 64, 1)
             elif user_input == "setpos":
                 self.setpos()
             elif user_input == 'set plugin':
