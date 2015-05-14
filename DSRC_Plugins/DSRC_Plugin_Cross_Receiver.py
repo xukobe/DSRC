@@ -7,10 +7,6 @@ from Controller_Module.DSRC_JobProcessor import Job
 import Controller_Module.DSRC_JobProcessor as DSRC_JobProcessor
 # Must implement
 
-do = False
-execute_time = 0
-time_duration = 30
-
 
 def customized_event_handler(dsrc_unit, event):
     if dsrc_unit.seq == event.seq:
@@ -21,14 +17,8 @@ def customized_event_handler(dsrc_unit, event):
             dsrc_unit.send_ack(event.seq)
 
     if event.type == DSRC_Event.TYPE_CUSTOMIZED:
-        if event.subtype == 'snakemove':
-            current_time = time.time()
-            # print str(current_time)
-            if current_time - execute_time > 30:
-                global do
-                do = event.do_it
-                # print str(do)
-        elif event.subtype == 'auto_setup':
+        if event.subtype == 'auto_setup':
+            # print event.subtype
             x = event.x
             y = event.y
             d = event.r
@@ -50,7 +40,3 @@ def customized_event_handler(dsrc_unit, event):
             dsrc_unit.job_processor.add_new_job(job1)
             dsrc_unit.job_processor.add_new_job(job2)
             dsrc_unit.job_processor.add_new_job(job3)
-
-
-def print_receiver():
-    print "I am a DSRC_Plugin_Receiver."

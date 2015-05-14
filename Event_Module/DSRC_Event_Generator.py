@@ -69,6 +69,7 @@ class USRPEventHandler(Thread, EventGenerator, ConnectorInterface):
             event.self_parse()
 
         if event:
+            event.seq = event_obj.get(DSRC_Event.KEY_SEQUENCE)
             event.source = event_obj[KEY_SOURCE]
             event.destination = event_obj[KEY_DESTINATION]
             event.type = event_obj[KEY_TYPE]

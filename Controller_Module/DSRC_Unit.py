@@ -379,6 +379,7 @@ class DSRCUnit(Thread, EventListener, JobCallback, SensorCallback):
 
     def set_unit_mode(self, mode):
         self.unit_mode = mode
+        self.job_processor.clear_all_jobs()
 
     def set_plugin(self):
         plugin_name = self.get_input("Plugin Name:")
@@ -432,28 +433,29 @@ class DSRCUnit(Thread, EventListener, JobCallback, SensorCallback):
         self.send_to_USRP(msg)
 
     def to_unit_mode(self):
-        mode_str = self.get_input("Mode:")
-        try:
-            mode = int(mode_str)
-        except ValueError, e:
-            print "Cannot convert " + mode_str + " into a number."
-            return
-        if mode == 1:
+        mode = self.get_input("Mode:")
+        # try:
+        #     mode = int(mode_str)
+        # except ValueError, e:
+        #     print "Cannot convert " + mode_str + " into a number."
+        #     return
+        if mode == "lead":
             self.set_unit_mode(DSRC_UNIT_MODE_LEAD)
             self.set_executor(False)
             self.set_receiver(False)
-        elif mode == 2:
+        elif mode == "follow":
             self.set_unit_mode(DSRC_UNIT_MODE_FOLLOW)
             self.set_executor(False)
             self.set_receiver(False)
-        elif mode == 3:
+        elif mode == "free":
             self.set_unit_mode(DSRC_UNIT_MODE_FREE)
             self.set_executor(False)
             self.set_receiver(False)
-        elif mode == 4:
+        elif mode == "customized":
             self.set_unit_mode(DSRC_UNIT_MODE_CUSTOMIZED)
             self.set_executor(True)
             self.set_receiver(True)
+
 
     # Simple Interface for iRobot Control
     def do_action(self, simple_action):
@@ -547,6 +549,8 @@ class DSRCUnit(Thread, EventListener, JobCallback, SensorCallback):
 
         if event.destination in (DSRC_Event.DESTINATION_ALL, self.unit_id):
             if event.type == DSRC_Event.TYPE_MONITOR_CAR:
+                # if event.sub_type:
+                #     print event.type + " " + event.sub_type
                 self.send_ack(event.seq)
                 if self.seq == event.seq:
                     return
@@ -558,13 +562,19 @@ class DSRCUnit(Thread, EventListener, JobCallback, SensorCallback):
                     elif event.setting.name == DSRC_Event.SETTINGS_NAME_STYLE:
                         value = event.setting.value
                         if value == DSRC_Event.SETTINGS_NAME_STYLE_LEAD:
-                            self.unit_mode = DSRC_UNIT_MODE_LEAD
+                            self.set_unit_mode(DSRC_UNIT_MODE_LEAD)
+                            self.set_executor(False)
+                            self.set_receiver(False)
                         elif value == DSRC_Event.SETTINGS_NAME_STYLE_FOLLOW:
-                            self.unit_mode = DSRC_UNIT_MODE_FOLLOW
+                            self.set_unit_mode(DSRC_UNIT_MODE_FOLLOW)
+                            self.set_executor(False)
+                            self.set_receiver(False)
                         elif value == DSRC_Event.SETTINGS_NAME_STYLE_FREE:
-                            self.unit_mode = DSRC_UNIT_MODE_FREE
+                            self.set_unit_mode(DSRC_UNIT_MODE_FREE)
+                            self.set_executor(False)
+                            self.set_receiver(False)
                         elif value == DSRC_Event.SETTINGS_NAME_STYLE_CUSTOMIZED:
-                            self.unit_mode = DSRC_UNIT_MODE_CUSTOMIZED
+                            self.set_unit_mode(DSRC_UNIT_MODE_CUSTOMIZED)
                             self.set_executor(True)
                             self.set_receiver(True)
                 elif event.sub_type == DSRC_Event.SUBTYPE_CMD:
@@ -769,7 +779,7 @@ class DSRCPositionTracker:
         :param processor: JobProcessor
         :param x: x coordinate, in cm
         :param y: y coordinate, in cm
-        :param radian: the direction in which the car facing
+        :param radian: the direction in which the car facing, radian
         """
         self.processor = processor
         # secondary position

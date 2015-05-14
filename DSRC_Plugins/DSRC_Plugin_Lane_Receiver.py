@@ -3,6 +3,8 @@ __author__ = 'xuepeng'
 import math
 
 import Event_Module.DSRC_Event as Event
+from Controller_Module.DSRC_JobProcessor import Job
+import Controller_Module.DSRC_JobProcessor as DSRC_JobProcessor
 
 
 stopSign = False
@@ -56,6 +58,36 @@ def customized_event_handler(dsrc_unit, event):
                 # print "No sign"
                 stopSign = False
                 slowSign = False
+    elif event.type == Event.TYPE_CUSTOMIZED:
+        if dsrc_unit.seq == event.seq:
+            return
+        else:
+            if event.seq:
+                dsrc_unit.seq = event.seq
+                dsrc_unit.send_ack(event.seq)
+        if event.subtype == 'auto_setup':
+            x = event.x
+            y = event.y
+            d = event.r
+            jobs = dsrc_unit.position_tracker.jobs_to_go(x, y)
+            job1_arg = jobs['job1']
+            job2_arg = jobs['job2']
+            current_r = dsrc_unit.position_tracker.radian/(math.pi*2)*360
+            changebyjob1 = job1_arg[2] * job1_arg[1]
+            d_after_change = current_r + changebyjob1
+            diff = (d - d_after_change) % 360
+            rotate_speed = 45
+            if diff > 180:
+                diff = 360 - diff
+                rotate_speed = -45
+            job3_time = abs(diff/float(rotate_speed))
+            job1 = Job(dsrc_unit, DSRC_JobProcessor.GO, job1_arg[2], job1_arg[0], job1_arg[1])
+            job2 = Job(dsrc_unit, DSRC_JobProcessor.GO, job2_arg[2], job2_arg[0], job2_arg[1])
+            job3 = Job(dsrc_unit, DSRC_JobProcessor.GO, job3_time, 0, rotate_speed)
+            dsrc_unit.job_processor.add_new_job(job1)
+            dsrc_unit.job_processor.add_new_job(job2)
+            dsrc_unit.job_processor.add_new_job(job3)
+
 
 
 def calculate_collision_point(x1, y1, r1, x2, y2, r2, speed1, speed2):

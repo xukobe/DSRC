@@ -39,6 +39,7 @@ class Job:
         self.action = action
         self.time = arg_time
         self.arg1 = arg1
+        # arg2 in degree
         self.arg2 = arg2
         self.timeLeft = self.time
         self.finished = False
