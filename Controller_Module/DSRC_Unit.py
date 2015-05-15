@@ -378,8 +378,10 @@ class DSRCUnit(Thread, EventListener, JobCallback, SensorCallback):
         print "Don't know what to do? Type help to explore the system!"
 
     def set_unit_mode(self, mode):
+        if self.unit_mode != mode:
+            self.job_processor.clear_all_jobs()
         self.unit_mode = mode
-        self.job_processor.clear_all_jobs()
+
 
     def set_plugin(self):
         plugin_name = self.get_input("Plugin Name:")
