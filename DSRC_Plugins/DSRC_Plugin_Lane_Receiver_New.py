@@ -73,6 +73,7 @@ def customized_event_handler(dsrc_unit, event):
             if event.seq:
                 dsrc_unit.seq = event.seq
                 dsrc_unit.send_ack(event.seq)
+
         if event.subtype == 'auto_setup':
             current_time = time.time()
             global auto_time
@@ -101,7 +102,6 @@ def customized_event_handler(dsrc_unit, event):
                 auto_time = time.time()
         elif event.subtype == 'automove':
             current_time = time.time()
-            # print str(current_time)
             global execute_time
             if current_time - execute_time > time_duration:
                 global do
