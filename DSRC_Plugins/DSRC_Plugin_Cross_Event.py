@@ -13,6 +13,7 @@ class CustomizedEvent(Event):
         self.y = None
         self.r = None
         self.seq = None
+        self.do_it = False
 
     def self_parse(self):
         self.subtype = self.msg_obj.get(DSRC_Event.KEY_SUBTYPE)
@@ -21,3 +22,7 @@ class CustomizedEvent(Event):
             self.x = self.msg_obj['x']
             self.y = self.msg_obj['y']
             self.r = self.msg_obj['r']
+        elif self.subtype == "automove":
+            do_it = self.msg_obj.get("do")
+            if do_it is not None:
+                self.do_it = self.msg_obj["do"]
