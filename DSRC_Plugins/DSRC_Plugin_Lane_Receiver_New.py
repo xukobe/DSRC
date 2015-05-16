@@ -73,7 +73,7 @@ def customized_event_handler(dsrc_unit, event):
             if event.seq:
                 dsrc_unit.seq = event.seq
                 dsrc_unit.send_ack(event.seq)
-
+        print str(event.subtype)
         if event.subtype == 'auto_setup':
             current_time = time.time()
             global auto_time
