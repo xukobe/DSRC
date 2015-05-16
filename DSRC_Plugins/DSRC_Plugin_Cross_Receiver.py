@@ -25,7 +25,7 @@ def customized_event_handler(dsrc_unit, event):
             current_time = time.time()
             global auto_time
             if current_time - auto_time > time_duration:
-                # print event.subtype
+                print event.subtype
                 x = event.x
                 y = event.y
                 d = event.r
