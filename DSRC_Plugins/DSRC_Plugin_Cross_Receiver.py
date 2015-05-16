@@ -5,12 +5,17 @@ import time
 import math
 from Controller_Module.DSRC_JobProcessor import Job
 import Controller_Module.DSRC_JobProcessor as DSRC_JobProcessor
+import threading
 # Must implement
 
 execute_time = 0
 time_duration = 30
 
 auto_time = 0
+
+setup_lock = threading.Lock()
+
+move_lock = threading.Lock()
 
 def customized_event_handler(dsrc_unit, event):
     if dsrc_unit.seq == event.seq:
@@ -22,6 +27,7 @@ def customized_event_handler(dsrc_unit, event):
 
     if event.type == DSRC_Event.TYPE_CUSTOMIZED:
         if event.subtype == 'auto_setup':
+            setup_lock.acquire()
             current_time = time.time()
             global auto_time
             if current_time - auto_time > time_duration:
@@ -48,7 +54,9 @@ def customized_event_handler(dsrc_unit, event):
                 dsrc_unit.job_processor.add_new_job(job2)
                 dsrc_unit.job_processor.add_new_job(job3)
                 auto_time = time.time()
+            setup_lock.release()
         elif event.subtype == 'automove':
+            move_lock.acquire()
             current_time = time.time()
             global execute_time
             if current_time - execute_time > time_duration:
@@ -58,3 +66,4 @@ def customized_event_handler(dsrc_unit, event):
                 execute_time = time.time()
                 job = Job(dsrc_unit, DSRC_JobProcessor.GO, 8, 30, 0)
                 dsrc_unit.job_processor.add_new_job(job)
+            move_lock.release()
