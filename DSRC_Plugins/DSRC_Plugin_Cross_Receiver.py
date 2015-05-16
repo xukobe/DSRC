@@ -25,7 +25,7 @@ def customized_event_handler(dsrc_unit, event):
             current_time = time.time()
             global auto_time
             if current_time - auto_time > time_duration:
-                print event.subtype
+                print "cross auto setup"
                 x = event.x
                 y = event.y
                 d = event.r
@@ -52,6 +52,7 @@ def customized_event_handler(dsrc_unit, event):
             current_time = time.time()
             global execute_time
             if current_time - execute_time > time_duration:
+                print "cross auto move"
                 global do
                 do = event.do_it
                 execute_time = time.time()
