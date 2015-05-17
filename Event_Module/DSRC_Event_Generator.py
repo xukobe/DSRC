@@ -65,8 +65,9 @@ class USRPEventHandler(Thread, EventGenerator, ConnectorInterface):
         elif event_obj[KEY_TYPE] == TYPE_CUSTOMIZED:
             # if self.customized_event:
             event = Plugin.customized_generate_event()
-            event.set_origin_msg(event_obj)
-            event.self_parse()
+            if event:
+                event.set_origin_msg(event_obj)
+                event.self_parse()
 
         if event:
             event.seq = event_obj.get(DSRC_Event.KEY_SEQUENCE)
