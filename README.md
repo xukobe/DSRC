@@ -10,11 +10,11 @@ The VSmart testbed is developed under Linux (Ubuntu 14.04). The deployment of VS
 The easiest way to install the GNU Radio and UHD is use the following script:
 http://www.sbrac.org/files/build-gnuradio
 
-#### gr-ieee802-11 
+### gr-ieee802-11 
 VSmart utilize open source project IEEE 802.11 a/g/p transceiver by bastibl
 The installation instruction is on the page: https://github.com/bastibl/gr-ieee802-11
 
-##### Installation of VSmart
+#### Installation of VSmart
 The VSmart can be installed by the following instructions:
 git clone https://github.com/xukobe/VSmart.git
 cd VSmart
