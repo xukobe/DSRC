@@ -12,7 +12,7 @@ stopSign = False
 
 slowSign = False
 
-CarSize = 50
+CarSize = 30
 
 execute_time = 0
 time_duration = 30
@@ -55,10 +55,10 @@ def customized_event_handler(dsrc_unit, event):
 
             # print str(x) + ":" + str(y) + ":time_f:" + str(time1_f) + ":time_s:" + str(time1_s) + ":time2:" + str(time2)
 
-            if abs(time1_s - time2) <= 3 and time1_s <= 5:
+            if abs(time1_s - time2) <= 3 and time1_s <= 3:
                 # print "Stop sign"
                 stopSign = True
-            elif abs(time1_f - time2) <= 5 and time1_f <= 7:
+            elif abs(time1_f - time2) <= 5 and time1_f <= 5:
                 # print "Slow sign"
                 stopSign = False
                 slowSign = True
@@ -153,7 +153,7 @@ def calculate_collision_point(x1, y1, r1, x2, y2, r2, speed1, speed2):
         y = a1*x + b1
         # print str(x) + ":" + str(y)
 
-        # This part is use to calculate if the intersection is at the front of the car of back of the car
+        # This part is use to calculate if the intersection is at the front of the car or the back of the car
         dx1 = x - x1
         dy1 = y - y1
         d21 = dx1*dx1 + dy1*dy1

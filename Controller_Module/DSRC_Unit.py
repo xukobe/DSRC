@@ -523,10 +523,12 @@ class DSRCUnit(Thread, EventListener, JobCallback, SensorCallback):
     def sensor_event_handler(self, events):
         if Create_Sensor.EVENT_WHEEL_DROP in events:
             self.job_processor.pause_processor()
+            self.job_processor.clear_all_jobs()
             #send wheel drop to monitor
 
         if Create_Sensor.EVENT_BUMP in events:
             self.job_processor.pause_processor()
+            self.job_processor.clear_all_jobs()
             #send bump to monitor
 
     def _set_plugin(self, plugin_name):
