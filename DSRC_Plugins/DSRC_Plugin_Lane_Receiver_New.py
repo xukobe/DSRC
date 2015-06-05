@@ -152,7 +152,7 @@ def calculate_collision_point(x1, y1, r1, x2, y2, r2, speed1, speed2):
                 time_to_catch_up = calc_time(x1, y1, x2, y2, (abs(speed1)-abs(speed2)))
                 x = time_to_catch_up*speed1*math.cos(r1) + x1
                 y = time_to_catch_up*speed1*math.sin(r1) + y1
-                return x, y
+                return x, y, CarSize
         else:
             # print "Opposite direction"
             # Do something, there is a possibility to have a face to face collision
@@ -163,12 +163,14 @@ def calculate_collision_point(x1, y1, r1, x2, y2, r2, speed1, speed2):
         y = a1*x + b1
         # print str(x) + ":" + str(y)
 
+
+
         # This part is use to calculate if the intersection is at the front of the car or the back of the car
         dx1 = x - x1
         dy1 = y - y1
         d21 = dx1*dx1 + dy1*dy1
         if d21 == 0:
-            return x, y
+            return x, y, 0
         cos1 = math.acos(dx1/math.sqrt(d21))
         if dy1 < 0:
             cos1 = 2*math.pi - cos1
@@ -177,30 +179,33 @@ def calculate_collision_point(x1, y1, r1, x2, y2, r2, speed1, speed2):
         dy2 = y - y2
         d22 = dx2*dx2 + dy2*dy2
         if d22 == 0:
-            return x, y
+            return x, y, CarSize
         cos2 = math.acos(dx2/math.sqrt(d22))
         if dy2 < 0:
             cos2 = 2*math.pi - cos2
 
         # print "r, cos:" + str(r1) + ", " + str(cos1) + ":" + str(r2) + ", " + str(cos2)
-
+        # check if the cars pass the collision point
         if abs(cos1 - r1) < 0.5 and abs(cos2 - r2) < 0.5:
+            # both car1 and car2 have not yet passed the collision point
             # print "Case1"
             if speed1 < 0 or speed2 < 0:
                 # print "Speed1 or Speed2 < 0"
                 return None
             # print str(x) + "," + str(y)
-            return x, y
+            return x, y, 0
         elif abs(cos1 - r1) < 0.5 and abs(cos2 - r2) > 0.5:
+            # car1 has not passed the collision point, but car2 passed
             # print "Case2"
             distance2 = math.sqrt(d22)
             if distance2 < CarSize:
                 if speed1 < 0 or speed2 < 0:
                     return None
-                return x, y
+                return x, y, CarSize
             else:
                 return None
         else:
+            # car1 has passed the collision point
             return None
 
 
