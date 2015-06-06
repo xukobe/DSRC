@@ -51,24 +51,39 @@ def customized_event_handler(dsrc_unit, event):
         else:
             x = p[0]
             y = p[1]
+            safe_distance = p[2]
 
-            time1_f = calc_time(x1, y1, x, y, 30)
-            time1_s = calc_time(x1, y1, x, y, 15)
-            time2 = calc_time(x2, y2, x, y, speed2)
+            # distance = calc_dis(x1, y1, x, y)
+            time1_fast = calc_time(x1, y1, x, y, 30)
+            time1_slow = calc_time(x1, y1, x, y, 15)
+
+            time1_fast_safe = safe_distance / 30
+            time1_slow_safe = safe_distance / 15
+
+            # time2 = calc_time(x2, y2, x, y, speed2)
 
             # print str(x) + ":" + str(y) + ":time_f:" + str(time1_f) + ":time_s:" + str(time1_s) + ":time2:" + str(time2)
 
-            if abs(time1_s - time2) <= 3 and time1_s <= 3:
-                # print "Stop sign"
+            if time1_slow < time1_slow_safe + 3:
                 stopSign = True
-            elif abs(time1_f - time2) <= 5 and time1_f <= 5:
-                # print "Slow sign"
+            elif time1_fast < time1_fast_safe + 3:
                 stopSign = False
                 slowSign = True
             else:
-                # print "No sign"
                 stopSign = False
                 slowSign = False
+
+            # if abs(time1_s - time2) <= 3 and time1_s <= 3:
+            #     # print "Stop sign"
+            #     stopSign = True
+            # elif abs(time1_f - time2) <= 5 and time1_f <= 5:
+            #     # print "Slow sign"
+            #     stopSign = False
+            #     slowSign = True
+            # else:
+            #     # print "No sign"
+            #     stopSign = False
+            #     slowSign = False
     elif event.type == Event.TYPE_CUSTOMIZED:
         if dsrc_unit.seq == event.seq:
             return
@@ -138,7 +153,7 @@ def calculate_collision_point(x1, y1, r1, x2, y2, r2, speed1, speed2):
         # print "a1 == a2"
         same_direction = False
         if math.pi/6*5 < ((r1 - r2) % math.pi) < math.pi/6*7:
-            if speed1 * speed2 < 0:
+            if speed1 * speed2 <= 0:
                 same_direction = False
             else:
                 same_direction = True
@@ -189,17 +204,25 @@ def calculate_collision_point(x1, y1, r1, x2, y2, r2, speed1, speed2):
         if abs(cos1 - r1) < 0.5 and abs(cos2 - r2) < 0.5:
             # both car1 and car2 have not yet passed the collision point
             # print "Case1"
-            if speed1 < 0 or speed2 < 0:
+            if speed1 <= 0 or speed2 <= 0:
                 # print "Speed1 or Speed2 < 0"
                 return None
             # print str(x) + "," + str(y)
-            return x, y, 0
+            theta = r2 - r1
+            if theta < 0:
+                theta = abs(theta)
+            if theta > math.pi:
+                theta = 2 * math.pi - theta
+            half_theta = theta / 2
+            safe_distance = CarSize/(math.tan(half_theta))/2
+            # print safe_distance
+            return x, y, safe_distance
         elif abs(cos1 - r1) < 0.5 and abs(cos2 - r2) > 0.5:
             # car1 has not passed the collision point, but car2 passed
             # print "Case2"
             distance2 = math.sqrt(d22)
             if distance2 < CarSize:
-                if speed1 < 0 or speed2 < 0:
+                if speed1 <= 0 or speed2 <= 0:
                     return None
                 return x, y, CarSize
             else:
@@ -208,9 +231,13 @@ def calculate_collision_point(x1, y1, r1, x2, y2, r2, speed1, speed2):
             # car1 has passed the collision point
             return None
 
+def calc_dis(x1, y1, x2, y2):
+    distance = math.sqrt(math.pow((x1-x2), 2) + math.pow((y1-y2), 2))
+    return distance
 
 def calc_time(x1, y1, x2, y2, speed):
     distance = math.sqrt(math.pow((x1-x2), 2) + math.pow((y1-y2), 2))
+    # print distance
     if speed == 0:
         if distance < CarSize:
             return 0
