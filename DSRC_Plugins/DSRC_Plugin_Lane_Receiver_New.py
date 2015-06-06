@@ -64,9 +64,9 @@ def customized_event_handler(dsrc_unit, event):
 
             # print str(x) + ":" + str(y) + ":time_f:" + str(time1_f) + ":time_s:" + str(time1_s) + ":time2:" + str(time2)
 
-            if time1_slow < time1_slow_safe + 3:
+            if time1_slow < time1_slow_safe + 4:
                 stopSign = True
-            elif time1_fast < time1_fast_safe + 3:
+            elif time1_fast < time1_fast_safe + 4:
                 stopSign = False
                 slowSign = True
             else:
