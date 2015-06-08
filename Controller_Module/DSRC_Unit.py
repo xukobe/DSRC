@@ -354,23 +354,27 @@ class DSRCUnit(Thread, EventListener, JobCallback, SensorCallback):
         print "Direction: " + str((self.position_tracker.radian/math.pi)*180)
 
     def help_info(self):
-        print "help"
-        print "quit"
-        print "control"
-        print "position"
-        print "safe mode"
-        print "full mode"
-        print "reconnect"
-        print "setpos"
-        print "set plugin"
-        print "unit mode"
-        print "enable executor"
-        print "enable receiver"
-        print "disable executor"
-        print "disable receiver"
-        print "info"
-        print "setPower"
-        print "setRate"
+        print "help: show help information."
+        print "quit: quit the VSmart unit."
+        print "control: allow user to control the VSmart unit to perform some actions, such as " \
+              "move forward and backward, turn left and right."
+        print "position: show current position of the unit."
+        print "safe mode: switch the robot to safe mode."
+        print "full mode: switch the robot to full mode."
+        print "reconnect: reconnect the computer with robot."
+        print "setpos: set a new position."
+        print "set plugin: choose a plugin."
+        print "unit mode: choose a unit mode. The mode includes, free, follow, lead, customized. " \
+              "A follow mode means the unit will follow the actions of another unit. " \
+              "Customized mode means the unit will use a plugin."
+        print "set target: If the unit mode is follow mode, the command can be used to set the target."
+        print "enable executor: enable the executor of a plugin."
+        print "enable receiver: enable the receiver of a plugin."
+        print "disable executor: disable the executor of a plugin."
+        print "disable receiver: disable the receiver of a plugin."
+        print "info: show the unit information."
+        print "setPower: set tranceiver power."
+        print "setRate: set tranceiver rate."
         Plugin.customized_cmd(self, "help")
 
     def welcome_info(self):
