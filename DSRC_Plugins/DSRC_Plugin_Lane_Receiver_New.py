@@ -223,7 +223,7 @@ def calculate_collision_point(x1, y1, r1, x2, y2, r2, speed1, speed2):
             distance1 = math.sqrt(d21)
             distance2 = math.sqrt(d22)
             if distance2 < 2.5 * CarSize:
-                if distance1 <= 3.5 * CarSize:
+                if distance1 <= 5 * CarSize:
                     if speed1 <= 0 or speed2 <= 0:
                         return x, y, CarSize
                     return x, y, CarSize
