@@ -78,6 +78,9 @@ class DSRCUnit(Thread, EventListener, JobCallback, SensorCallback):
         self.customized_time_counter = 0
         self.customized_time_intervals = 0
         self.dsrc_thread_update_interval = 0.05
+        self.original_x = 10
+        self.original_y = 10
+        self.original_r = 0
 
         # for follow mode:
         self.target = None
@@ -122,6 +125,7 @@ class DSRCUnit(Thread, EventListener, JobCallback, SensorCallback):
         self.seq = -1
 
         self.position_tracker = DSRCPositionTracker(self.job_processor, 20, 20, 0)
+        self.position_tracker.set_pos(self.original_x, self.original_y, self.original_r)
         self.bg_thread = DSRCBGThread(self.bg_run)
         self.bg_thread.start()
         self.start()
@@ -159,6 +163,11 @@ class DSRCUnit(Thread, EventListener, JobCallback, SensorCallback):
 
         # iRobot Section
         self.robot_port = config.get("iRobot", "Port")
+
+        # InitPos Section
+        self.original_x = config.getfloat("InitPos", "X")
+        self.original_y = config.getfloat("InitPos", "Y")
+        self.original_r = config.getfloat("InitPos", "R")
 
         print config_ini_path
 
